@@ -79,40 +79,40 @@ class ObjectCluster {
                         boost::optional<int> _max_cluster_size=boost::none) {
                         
             std::cout<<""<<std::endl;
-            ROS_INFO("Set ObjectSeg Parameters");
+            ROS_WARN("Set ObjectSeg Parameters");
 
             VERT_SCAN = _vert_scan;
-            ROS_INFO("vert scan: %d", VERT_SCAN);
+            ROS_WARN("vert scan: %d", VERT_SCAN);
             
             HORZ_SCAN = _horz_scan;
-            ROS_INFO("horz scan: %d", HORZ_SCAN);
+            ROS_WARN("horz scan: %d", HORZ_SCAN);
             
             MIN_RANGE = _min_range;
-            ROS_INFO("min range: %f", MIN_RANGE);
+            ROS_WARN("min range: %f", MIN_RANGE);
 
             MAX_RANGE = _max_range;
-            ROS_INFO("max range: %f", MAX_RANGE);
+            ROS_WARN("max range: %f", MAX_RANGE);
             
             HORZ_MERGE_THRES = _horz_merge_thres;
-            ROS_INFO("horz merge thres: %f", HORZ_MERGE_THRES);
+            ROS_WARN("horz merge thres: %f", HORZ_MERGE_THRES);
             
             VERT_MERGE_THRES = _vert_merge_thres;
-            ROS_INFO("vert merge thres: %f", VERT_MERGE_THRES);
+            ROS_WARN("vert merge thres: %f", VERT_MERGE_THRES);
 
             VERT_SCAN_SIZE = _vert_scan_size;
-            ROS_INFO("vert scan size: %d", VERT_SCAN_SIZE);
+            ROS_WARN("vert scan size: %d", VERT_SCAN_SIZE);
             
             HORZ_SKIP_SIZE = _horz_skip_size;
-            ROS_INFO("horz skip size: %d", HORZ_SKIP_SIZE);
+            ROS_WARN("horz skip size: %d", HORZ_SKIP_SIZE);
             
             HORZ_SCAN_SIZE = _horz_scan_size;
-            ROS_INFO("horz scan size: %d", HORZ_SCAN_SIZE);
+            ROS_WARN("horz scan size: %d", HORZ_SCAN_SIZE);
 
             HORZ_EXTENSION_SIZE = _horz_extension_size;
-            ROS_INFO("horz extension size: %d", HORZ_EXTENSION_SIZE);
+            ROS_WARN("horz extension size: %d", HORZ_EXTENSION_SIZE);
 
             DOWNSAMPLE = _downsample;
-            ROS_INFO("downsample: %d", DOWNSAMPLE);
+            ROS_WARN("downsample: %d", DOWNSAMPLE);
             
             DEBUG = _debug;
 

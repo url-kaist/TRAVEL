@@ -111,8 +111,8 @@ void callbackNode(const node_msg::node::ConstPtr &msg){
     // Apply traversable ground segmentation
     double ground_seg_time = 0.0;
     travel_ground_seg->estimateGround(*filtered_pc, *ground_pc, *nonground_pc, ground_seg_time);
-    std::cout << "Ground Seg: " << filtered_pc->size() << " -> Ground: " << ground_pc->size() << " -> NonGround: " << nonground_pc->size() << std::endl;
-    std::cout << "Ground segmentation time: " << ground_seg_time << std::endl;
+    std::cout << "\033[1;35m Traversable-Ground Seg: " << filtered_pc->size() << " -> Ground: " << ground_pc->size() << ", NonGround: " << nonground_pc->size() << "\033[0m" << std::endl;
+    std::cout << "Traversable-Ground Seg time: " << ground_seg_time << std::endl;
 
     sensor_msgs::PointCloud2 ground_cloud_msg;
     pcl::toROSMsg(*ground_pc, ground_cloud_msg);
@@ -126,6 +126,7 @@ void callbackNode(const node_msg::node::ConstPtr &msg){
 
     //Apply above-ground object segmentation
     travel_object_seg->segmentObjects(nonground_pc, labeled_pc);
+    std::cout << "\033[1;35m Above-Ground Seg: -> " << labeled_pc->size() << "\033[0m" << std::endl;
 
     sensor_msgs::PointCloud2 labeled_cloud_msg;
     pcl::toROSMsg(*labeled_pc, labeled_cloud_msg);
@@ -142,6 +143,8 @@ int main(int argc, char **argv) {
     // Set Parameters
 
     nh.param<string>("/node_topic"          , node_topic_, "/node");
+    std::cout << "\033[1;32m" << "Node topic: " << node_topic_ << "\033[0m" << std::endl;
+
     nh.param<float> ("/lidar/min_range"     , min_range_, 0.0);
     nh.param<float> ("/lidar/max_range"     , max_range_, 30.0);
     nh.param<int>   ("/lidar/vert_scan"     , vert_scan, 64);
