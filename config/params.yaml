@@ -1,4 +1,4 @@
-node_topic: "node"
+node_topic: "/deskew_node"
 
 lidar:
   min_range: 3.0
