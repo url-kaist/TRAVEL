@@ -25,9 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 find_package(PCL REQUIRED)
-find_package(OpenCV REQUIRED)
-message("hello ${OpenCV_INCLUDE_DIRS}")
-message("hello ${OpenCV_LIBRARIES}")
+
 add_message_files(
   FILES
   node.msg
@@ -52,7 +50,6 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
 )
 
 
@@ -65,5 +62,4 @@ add_executable(${PROJECT_NAME}_node src/travel_node.cpp)
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
-  ${OpenCV_LIBRARIES}
 )
