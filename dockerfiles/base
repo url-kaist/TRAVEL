@@ -22,6 +22,6 @@ RUN /bin/bash -c 'source /opt/ros/noetic/setup.bash && mkdir -p /ros_ws/src && c
   && cd /ros_ws && catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${CXXFLAGS_17}" \
   && source /ros_ws/devel/setup.bash'
 
-COPY ./run.sh /run_travel.sh
+COPY ./run.sh ./run_travel.sh
 
 CMD ["./run_travel.sh"]
