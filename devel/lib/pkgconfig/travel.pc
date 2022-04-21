@@ -1,8 +1,0 @@
-prefix=/home/euigon/ros_ws/travel/devel
-
-Name: travel
-Description: Description of travel
-Version: 0.1.0
-Cflags: -I/home/euigon/ros_ws/travel/devel/include -I/home/euigon/ros_ws/travel/src/include
-Libs: -L${prefix}/lib -ltravel
-Requires: roscpp std_msgs message_runtime

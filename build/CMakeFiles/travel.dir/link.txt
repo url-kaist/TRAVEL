@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -std=c++14  -O3 -Wall -g -pthread   -shared -Wl,-soname,libtravel.so -o /home/euigon/ros_ws/travel/devel/lib/libtravel.so CMakeFiles/travel.dir/src/travel_node.cpp.o 
