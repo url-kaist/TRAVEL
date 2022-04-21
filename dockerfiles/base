@@ -22,5 +22,4 @@ RUN /bin/bash -c 'source /opt/ros/noetic/setup.bash && mkdir -p /ros_ws/src && c
   && source /ros_ws/devel/setup.bash'
 
 
-ENTRYPOINT ["./ros_entrypoint.sh"]
 
