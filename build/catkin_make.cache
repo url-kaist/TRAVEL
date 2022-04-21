@@ -1,0 +1,2 @@
+.
+-DCATKIN_DEVEL_PREFIX=/home/euigon/ros_ws/travel/devel -DCMAKE_INSTALL_PREFIX=/home/euigon/ros_ws/travel/install -G Unix Makefiles

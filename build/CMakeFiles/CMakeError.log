@@ -1,0 +1,58 @@
+Performing C SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /home/euigon/ros_ws/travel/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_0b40b/fast && /usr/bin/make -f CMakeFiles/cmTC_0b40b.dir/build.make CMakeFiles/cmTC_0b40b.dir/build
+make[1]: Entering directory '/home/euigon/ros_ws/travel/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_0b40b.dir/src.c.o
+/usr/bin/cc   -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_0b40b.dir/src.c.o   -c /home/euigon/ros_ws/travel/build/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_0b40b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0b40b.dir/link.txt --verbose=1
+/usr/bin/cc  -DCMAKE_HAVE_LIBC_PTHREAD    -rdynamic CMakeFiles/cmTC_0b40b.dir/src.c.o  -o cmTC_0b40b 
+/usr/bin/ld: CMakeFiles/cmTC_0b40b.dir/src.c.o: in function `main':
+src.c:(.text+0x46): undefined reference to `pthread_create'
+/usr/bin/ld: src.c:(.text+0x52): undefined reference to `pthread_detach'
+/usr/bin/ld: src.c:(.text+0x63): undefined reference to `pthread_join'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_0b40b.dir/build.make:87: cmTC_0b40b] Error 1
+make[1]: Leaving directory '/home/euigon/ros_ws/travel/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_0b40b/fast] Error 2
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/euigon/ros_ws/travel/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_19fb9/fast && /usr/bin/make -f CMakeFiles/cmTC_19fb9.dir/build.make CMakeFiles/cmTC_19fb9.dir/build
+make[1]: Entering directory '/home/euigon/ros_ws/travel/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_19fb9.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_19fb9.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.16/Modules/CheckFunctionExists.c
+Linking C executable cmTC_19fb9
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_19fb9.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_19fb9.dir/CheckFunctionExists.c.o  -o cmTC_19fb9  -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_19fb9.dir/build.make:87: cmTC_19fb9] Error 1
+make[1]: Leaving directory '/home/euigon/ros_ws/travel/build/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_19fb9/fast] Error 2
+
+
+

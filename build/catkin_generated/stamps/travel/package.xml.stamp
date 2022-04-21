@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>travel</name>
+  <version>0.1.0</version>
+  <description>The travel package</description>
+
+  
+  <maintainer email="dhalsgh03@gmail.com">Minho Oh</maintainer>
+  <maintainer email="egjung94@gmail.com">Euigon Jung</maintainer>
+
+  <license>KAIST_Urban_Robotics_Lab</license>
+
+  <author email="dhalsgh03@gmail.com">Minho Oh</author>
+  <author email="egjung94@gmail.com">Euigon Jung</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+
+  <build_depend>std_msgs</build_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+  <build_depend>sensor_msgs</build_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+
+  <build_depend>geometry_msgs</build_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

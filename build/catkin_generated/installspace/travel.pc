@@ -1,0 +1,8 @@
+prefix=/home/euigon/ros_ws/travel/install
+
+Name: travel
+Description: Description of travel
+Version: 0.1.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -ltravel
+Requires: roscpp std_msgs message_runtime
