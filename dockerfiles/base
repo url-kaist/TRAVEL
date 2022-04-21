@@ -24,6 +24,6 @@ RUN /bin/bash -c 'source /opt/ros/noetic/setup.bash && mkdir -p /ros_ws/src && c
 
 WORKDIR /ros_ws
 
-COPY ./run.sh /run.sh
+COPY ./run.sh /run_travel.sh
 
 CMD ["roslaunch", "travel", "run.launch"]
