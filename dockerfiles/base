@@ -26,4 +26,4 @@ WORKDIR /ros_ws
 
 COPY ./run.sh /run_travel.sh
 
-CMD ["roslaunch", "travel", "run.launch"]
+CMD ["./run_travel.sh"]
