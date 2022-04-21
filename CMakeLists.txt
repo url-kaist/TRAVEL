@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(travel)
 
+
+
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "-std=c++14")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -pthread")
@@ -21,9 +23,11 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
+
 find_package(PCL REQUIRED)
 find_package(OpenCV REQUIRED)
-
+message("hello ${OpenCV_INCLUDE_DIRS}")
+message("hello ${OpenCV_LIBRARIES}")
 add_message_files(
   FILES
   node.msg
@@ -40,7 +44,6 @@ catkin_package(
  INCLUDE_DIRS include
  LIBRARIES travel
  CATKIN_DEPENDS roscpp std_msgs message_runtime
- DEPENDS system_lib
 )
 
 ## Specify additional locations of header files
@@ -50,8 +53,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-  ${node_msg_INCLUDE_DIRS}
 )
+
 
 # Declare a C++ library
 add_library(${PROJECT_NAME}

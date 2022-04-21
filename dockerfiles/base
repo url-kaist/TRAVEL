@@ -11,11 +11,10 @@ RUN apt-get update \
   && apt-get -V install -y \
     apt-utils \
     build-essential \
+    git \
     ros-noetic-pcl-ros \
     ros-noetic-pcl-conversions \
-    libopencv-dev \
-    python3-opencv \
-    git
+    ros-noetic-jsk-recognition-msgs 
 
 RUN /bin/bash -c 'source /opt/ros/noetic/setup.bash && mkdir -p /ros_ws/src && cd /ros_ws/src \
   && git clone https://github.com/url-kaist/TRAVEL.git --branch docker\
