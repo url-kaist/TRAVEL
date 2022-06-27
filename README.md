@@ -6,5 +6,5 @@ TRAVEL: Traversable Ground and Above-Ground Object Segmentation using Graph Repr
 ## Contributors
 - Minho Oh & Euigon Jung
 - email: 
-    - Minh Oh: minho.oh@kaist.ac.kr
+    - Minho Oh: minho.oh@kaist.ac.kr
     - Euigon Jung: euigon94@kaist.ac.kr
