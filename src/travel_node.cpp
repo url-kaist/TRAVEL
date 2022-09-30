@@ -23,7 +23,7 @@
 
 #include "travel/object_graph_cluster.hpp"
 #include "travel/travelsable_ground_graph_cluster.hpp"
-#include "node_msg/node.h"
+#include "travel/node.h"
 
 #include <geometry_msgs/Pose.h>
 
@@ -74,9 +74,9 @@ float car_width, car_length, lidar_width_offset, lidar_length_offset, horz_merge
 int downsample, vert_scan_size, horz_scan_size, horz_skip_size, horz_extension_size, min_cluster_size, max_cluster_size;
 bool debug;
 
-void callbackNode(const node_msg::node::ConstPtr &msg){
+void callbackNode(const travel::node::ConstPtr &msg){
 
-    node_msg::node node_msg = *msg;
+    travel::node node_msg = *msg;
     std::cout << "Seq: " << node_msg.header.seq << std::endl;
     std::cout << "Frame: " << node_msg.header.frame_id << std::endl;
     std_msgs::Header node_header = node_msg.header;
@@ -209,7 +209,7 @@ int main(int argc, char **argv) {
     pub_ground_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/ground_pc", 1);
     pub_labeled_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/segmented_pc", 1);
 
-    ros::Subscriber sub_ptCloud = nh.subscribe<node_msg::node>(node_topic_, 100, callbackNode, ros::TransportHints().tcpNoDelay());
+    ros::Subscriber sub_ptCloud = nh.subscribe<travel::node>(node_topic_, 100, callbackNode, ros::TransportHints().tcpNoDelay());
     ros::spin();
 
     return 0;
