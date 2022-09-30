@@ -6,6 +6,9 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
 <a href="https://ieeexplore.ieee.org/document/9794594"><img src="https://img.shields.io/badge/RA_L-9794594-004088.svg"/></a>
 <a href="https://arxiv.org/abs/2206.03190"><img src="https://img.shields.io/badge/arXiv-2206.03190-004088.svg"/></a>
 
+### Keywords
+Object segmentation, Traversable ground segmentation, Graph search, Autonomous navigation, LiDAR
+
 ## Demo
 ![travel_kitti](https://user-images.githubusercontent.com/47359642/193223368-d43133ec-c231-4e50-90e0-98aa0bf3a5df.gif)
 ![TRAVEL_results](https://user-images.githubusercontent.com/47359642/193215974-e0e01e73-d578-458d-992f-69069b349b89.png)
@@ -16,8 +19,19 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
     - Minh Oh: minho.oh@kaist.ac.kr
     - Euigon Jung: euigon94@kaist.ac.kr
 
-## How to Build
+## Test Env.
+** Ubuntu 18.04 LTS
+** ROS Melodic
 
+## How to Build
+1. Dedendencies
+    ```
+    sudo apt install cmake libeigen3-dev libboost-all-dev
+    sudo apt-get install ros-melodic-jsk-recognition
+    sudo apt-get install ros-melodic-jsk-common-msgs
+    sudo apt-get install ros-melodic-jsk-rviz-plugins
+    ```
+2. Build
     ```
     mkdir -p catkin_ws/src/
     cd catkin_ws/src/
@@ -26,14 +40,15 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
     catkin_make
     ```
 
-### Test Env.
-
 ## Download our dataset
-
-
+    ```
+    wget https://urserver.kaist.ac.kr/publicdata/TRAVEL_22/rough_terrain_1.bag
+    wget https://urserver.kaist.ac.kr/publicdata/TRAVEL_22/rough_terrain_2.bag
+    ```
 ## How to Run TRAVEL
 
-### On your setting.
+## On your setting.
+###
 
 ## Aplications
 
