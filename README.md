@@ -6,12 +6,16 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
 <a href="https://ieeexplore.ieee.org/document/9794594"><img src="https://img.shields.io/badge/RA_L-9794594-004088.svg"/></a>
 <a href="https://arxiv.org/abs/2206.03190"><img src="https://img.shields.io/badge/arXiv-2206.03190-004088.svg"/></a>
 
-### Keywords
-Object segmentation, Traversable ground segmentation, Graph search, Autonomous navigation, LiDAR
-
 ## Demo
 ![travel_kitti](https://user-images.githubusercontent.com/47359642/193223368-d43133ec-c231-4e50-90e0-98aa0bf3a5df.gif)
 ![TRAVEL_results](https://user-images.githubusercontent.com/47359642/193215974-e0e01e73-d578-458d-992f-69069b349b89.png)
+
+### Keywords
+Object segmentation, Traversable ground segmentation, Graph search, Autonomous navigation, LiDAR
+
+### To Do 
+- [ ] Add the application codes
+- [ ] Update for docker users
 
 ## Contributors
 - Minho Oh & Euigon Jung
@@ -59,12 +63,11 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
 
 
 ## Aplications
-- TRAVEL can be applied for local terrain mapping.
+- Local terrain map.
 
-- Especially, TGS module of TRAVEL, which is for traversable ground segmentation, can be applied for global traversable map.
+- Global traversable map.
 
-- So, by using TRAVEL with [ERASOR](https://github.com/LimHyungTae/ERASOR), the global static traversable map can be generated. 
-
+- Global static traversable map by using TRAVEL with [ERASOR](https://github.com/LimHyungTae/ERASOR)
 ![traversable_map](https://user-images.githubusercontent.com/47359642/193323305-288da2c8-5083-45e8-8781-815ae8ee592d.png)
 
 ## Citation
