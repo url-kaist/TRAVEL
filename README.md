@@ -18,10 +18,11 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
 - email: 
     - Minh Oh: minho.oh@kaist.ac.kr
     - Euigon Jung: euigon94@kaist.ac.kr
+- Advised from Hyungtae Lim and Hyun Myung @ KAIST
 
 ## Test Env.
-** Ubuntu 18.04 LTS
-** ROS Melodic
+- Ubuntu 18.04 LTS
+- ROS Melodic
 
 ## How to Build
 1. Dedendencies
