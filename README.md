@@ -49,11 +49,20 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
     ```
     
 ## How to Run TRAVEL
+- RUN!
+    ```
+    roslaunch travel run.launch
+    ```
 
 ## On your setting.
-###
+
 
 ## Aplications
+- TRAVEL can be applied for local terrain mapping.
+
+- Especially, TGS module of TRAVEL, which is for traversable ground segmentation, can be applied for global traversable map.
+
+- So, by using TRAVEL with [ERASOR](https://github.com/LimHyungTae/ERASOR), the global static traversable map can be generated. 
 
 ## Citation
 If our research has been helpful, please cite the below papers:
