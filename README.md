@@ -10,8 +10,8 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
 Object segmentation, Traversable ground segmentation, Graph search, Autonomous navigation, LiDAR
 
 ## Demo
-[Above-ground object segmentation] [Traverable ground segmentation]
-![travel_kitti](https://user-images.githubusercontent.com/47359642/193223368-d43133ec-c231-4e50-90e0-98aa0bf3a5df.gif)
+`**[Above-ground object segmentation]** **[Traverable ground segmentation]**
+`![travel_kitti](https://user-images.githubusercontent.com/47359642/193223368-d43133ec-c231-4e50-90e0-98aa0bf3a5df.gif)
 ![TRAVEL_results](https://user-images.githubusercontent.com/47359642/193215974-e0e01e73-d578-458d-992f-69069b349b89.png)
 
 ## Contributors
