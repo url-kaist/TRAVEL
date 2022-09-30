@@ -7,9 +7,7 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
 <a href="https://arxiv.org/abs/2206.03190"><img src="https://img.shields.io/badge/arXiv-2206.03190-004088.svg"/></a>
 
 ## Demo
-
-![TRAVEL_results](https://user-images.githubusercontent.com/47359642/193215364-4db4bad7-116a-4d35-bea3-eb64ac885799.png)
-
+![TRAVEL_results.pdf](https://github.com/url-kaist/TRAVEL/files/9681780/TRAVEL_results.pdf)
 ## Contributors
 - Minho Oh & Euigon Jung
 - email: 
