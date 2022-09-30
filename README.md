@@ -8,7 +8,7 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
 
 ## Demo
 
-
+[TRAVEL_results.pdf](https://github.com/url-kaist/TRAVEL/files/9681763/TRAVEL_results.pdf)
 
 ## Contributors
 - Minho Oh & Euigon Jung
