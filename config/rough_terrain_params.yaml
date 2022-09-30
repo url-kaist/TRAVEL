@@ -1,0 +1,43 @@
+node_topic: "/os_deskew_node"
+
+lidar:
+  min_range: 1.0
+  max_range: 10.0
+
+  # for Rough Terrain data: OS0-128
+  vert_scan: 128
+  horz_scan: 1024
+  min_vert_angle: -45.0
+  max_vert_angle: 45.0
+
+tgs:
+  resolution: 2.0
+  num_iter: 3
+  num_lpr: 5
+  num_min_pts: 10
+  th_seeds: 0.5
+  th_dist: 0.125
+  th_outlier: 1.0
+  th_normal: 0.940
+  th_weight: 100
+  th_lcc_normal: 0.03
+  th_lcc_planar: 0.1
+  th_obstacle: 1.0
+  refine_mode: true
+  visualization: true
+
+aos:
+  downsample: 1
+  car_width: 1.0
+  car_length: 2.0
+  lidar_width_offset: -0.27
+  lidar_length_offset: 0.0
+  th_horz_merg: 0.1
+  th_vert_merg: 0.2
+  vert_scan_size: 10
+  horz_scan_size: 10
+  horz_skip_size: 10
+  horz_extension_size: 10
+  min_cluster_size: 10
+  max_cluster_size: 30000
+  debug: false
