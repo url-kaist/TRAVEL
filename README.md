@@ -64,6 +64,8 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
 
 - So, by using TRAVEL with [ERASOR](https://github.com/LimHyungTae/ERASOR), the global static traversable map can be generated. 
 
+![traversable_map](https://user-images.githubusercontent.com/47359642/193323305-288da2c8-5083-45e8-8781-815ae8ee592d.png)
+
 ## Citation
 If our research has been helpful, please cite the below papers:
 
