@@ -14,6 +14,7 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
 Object segmentation, Traversable ground segmentation, Graph search, Autonomous navigation, LiDAR
 
 ### To Do 
+* This archive is still being updated. Up until the IROS'22 presentation, I will update the final version.
 - [ ] Add the application codes
 - [ ] Update for docker users
 
