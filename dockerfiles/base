@@ -1,0 +1,28 @@
+ARG BASEIMG=osrf/ros:noetic-desktop-full
+FROM $BASEIMG
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CFLAGS="-march=broadwell -ffast-math -mabm -mavx256-split-unaligned-load -mavx256-split-unaligned-store -mclflushopt -msgx -mxsavec -mxsaves"
+ENV CXXFLAGS="${CFLAGS}"
+ENV CXXFLAGS_17="${CFLAGS} -std=c++17 -faligned-new"
+
+# Required packages
+RUN apt-get update \
+  && apt-get -V install -y \
+    apt-utils \
+    build-essential \
+    git \
+    ros-noetic-pcl-ros \
+    ros-noetic-pcl-conversions \
+    ros-noetic-jsk-recognition-msgs \
+    ros-noetic-jsk-rviz-plugins
+
+RUN /bin/bash -c 'source /opt/ros/noetic/setup.bash && mkdir -p /ros_ws/src && cd /ros_ws/src \
+  && git clone https://github.com/url-kaist/TRAVEL.git --branch docker\
+  && cd /ros_ws && catkin_make --cmake-args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="${CXXFLAGS_17}" \
+  && source /ros_ws/devel/setup.bash'
+
+WORKDIR /
+COPY ./run.sh ./run_travel.sh
+
+CMD ["./run_travel.sh"]
