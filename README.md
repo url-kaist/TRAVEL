@@ -41,6 +41,7 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
     ```
 
 ## Download our dataset
+rough_terrain_1 (24.5GB) and rough_terrain_2 (15.4GB) are our rough terrain dataset. 
     ```
     wget https://urserver.kaist.ac.kr/publicdata/TRAVEL_22/rough_terrain_1.bag
     wget https://urserver.kaist.ac.kr/publicdata/TRAVEL_22/rough_terrain_2.bag
