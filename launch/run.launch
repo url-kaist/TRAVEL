@@ -1,5 +1,5 @@
 <launch>
-    <rosparam file="$(find travel)/config/params.yaml" command="load" />
+    <rosparam file="$(find travel)/config/rough_terrain_params.yaml" command="load" />
     
     <node name="travel_node" pkg="travel" type="travel_node" output="screen" />
 
