@@ -21,8 +21,8 @@
 #include <opencv/cv.h>
 #include <signal.h>
 
-#include "travel/object_graph_cluster.hpp"
-#include "travel/travelsable_ground_graph_cluster.hpp"
+#include "travel/aos.hpp"
+#include "travel/tgs.hpp"
 #include "travel/node.h"
 
 #include <geometry_msgs/Pose.h>
@@ -51,8 +51,8 @@ ros::Publisher pub_ground_cloud;
 ros::Publisher pub_labeled_cloud;
 ros::Publisher pub_raw_cloud;
 
-boost::shared_ptr<TravelGroundSeg<PointT>> travel_ground_seg;
-boost::shared_ptr<ObjectCluster<PointT>> travel_object_seg;
+boost::shared_ptr<travel::TravelGroundSeg<PointT>> travel_ground_seg;
+boost::shared_ptr<travel::ObjectCluster<PointT>> travel_object_seg;
 
 pcl::PointCloud<PointT>::Ptr cloud_in;
 pcl::PointCloud<PointT>::Ptr filtered_pc;
@@ -62,17 +62,6 @@ pcl::PointCloud<PointT>::Ptr outlier_pc;
 pcl::PointCloud<PointT>::Ptr labeled_pc;
 
 float min_range_, max_range_;
-std::string node_topic_;
-int vert_scan, horz_scan;
-float min_vert_angle, max_vert_angle;
-
-float tgf_res, th_seeds, th_dist, th_outlier, th_normal, th_weight, th_lcc_normal_similarity, th_lcc_planar_dist;
-int num_iter, num_lpr, num_min_pts;
-bool refine_mode, viz_mode;
-
-float car_width, car_length, lidar_width_offset, lidar_length_offset, horz_merge_thres, vert_merge_thres;
-int downsample, vert_scan_size, horz_scan_size, horz_skip_size, horz_extension_size, min_cluster_size, max_cluster_size;
-bool debug;
 
 void callbackNode(const travel::node::ConstPtr &msg){
 
@@ -140,11 +129,14 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "travel_graph_clsuter");
     ros::NodeHandle nh;
     ROS_INFO("Travel: Graph Cluster");
-    // Set Parameters
 
+    // Set Parameters
+    std::string node_topic_;
     nh.param<string>("/node_topic"          , node_topic_, "/node");
     std::cout << "\033[1;32m" << "Node topic: " << node_topic_ << "\033[0m" << std::endl;
 
+    int vert_scan, horz_scan;
+    float min_vert_angle, max_vert_angle;
     nh.param<float> ("/lidar/min_range"     , min_range_, 0.0);
     nh.param<float> ("/lidar/max_range"     , max_range_, 30.0);
     nh.param<int>   ("/lidar/vert_scan"     , vert_scan, 64);
@@ -152,6 +144,9 @@ int main(int argc, char **argv) {
     nh.param<float> ("/lidar/min_vert_angle", min_vert_angle, 50.0);
     nh.param<float> ("/lidar/max_vert_angle", max_vert_angle, 50.0);
 
+    float tgf_res, th_seeds, th_dist, th_outlier, th_normal, th_weight, th_lcc_normal_similarity, th_lcc_planar_dist, th_obstacle;
+    int num_iter, num_lpr, num_min_pts;
+    bool refine_mode, viz_mode;
     nh.param<float>("/tgs/resolution"    , tgf_res, 5.0);
     nh.param<int>  ("/tgs/num_iter"     , num_iter, 3);
     nh.param<int>  ("/tgs/num_lpr"      , num_lpr, 20);
@@ -161,11 +156,15 @@ int main(int argc, char **argv) {
     nh.param<float>("/tgs/th_outlier"   , th_outlier, 0.3);
     nh.param<float>("/tgs/th_normal"    , th_normal, 0.707);
     nh.param<float>("/tgs/th_weight"    , th_weight, 1.5);
+    nh.param<float>("/tgs/th_obstacle"  , th_obstacle, 1.5);
     nh.param<float>("/tgs/th_lcc_normal", th_lcc_normal_similarity , 1.5);
     nh.param<float>("/tgs/th_lcc_planar", th_lcc_planar_dist , 1.5);
     nh.param<bool> ("/tgs/refine_mode"  , refine_mode, true);
     nh.param<bool> ("/tgs/visualization", viz_mode, true);  
 
+    float car_width, car_length, lidar_width_offset, lidar_length_offset, horz_merge_thres, vert_merge_thres;
+    int downsample, vert_scan_size, horz_scan_size, horz_skip_size, horz_extension_size, min_cluster_size, max_cluster_size;
+    bool debug;
     nh.param<int>  ("/aos/downsample"           , downsample, 2);
     nh.param<float>("/aos/car_width"            , car_width, 1.0);
     nh.param<float>("/aos/car_length"           , car_length, 1.0);
@@ -179,23 +178,23 @@ int main(int argc, char **argv) {
     nh.param<int>  ("/aos/horz_extension_size"  , horz_extension_size, 3);
     nh.param<int>  ("/aos/min_cluster_size"     , min_cluster_size, 4);
     nh.param<int>  ("/aos/max_cluster_size"     , max_cluster_size, 100);
-    nh.param<bool> ("/aos/debug"                , debug, false);
 
-    // Initialize travel ground segmentation & object cluster
-    travel_ground_seg.reset(new TravelGroundSeg<PointT>(&nh));
-    travel_object_seg.reset(new ObjectCluster<PointT>());
+    travel_ground_seg.reset(new travel::TravelGroundSeg<PointT>());
+    // travel_ground_seg.reset(new travel::TravelGroundSeg<PointT>(&nh));
+    travel_object_seg.reset(new travel::ObjectCluster<PointT>());
 
     std::cout << "Max Range: " << max_range_ << std::endl;
     std::cout << "Min Range: " << min_range_ << std::endl;
-    travel_ground_seg->setParams(max_range_, min_range_, tgf_res, num_iter, num_lpr, num_min_pts, 
-                                th_seeds, th_dist, th_outlier, th_normal, th_weight, 
-                                th_lcc_normal_similarity, th_lcc_planar_dist, refine_mode, viz_mode);
+    travel_ground_seg->setParams(max_range_, min_range_, tgf_res, 
+                                num_iter, num_lpr, num_min_pts, th_seeds, 
+                                th_dist, th_outlier, th_normal, th_weight, 
+                                th_lcc_normal_similarity, th_lcc_planar_dist, th_obstacle,
+                                refine_mode, viz_mode);
 
     travel_object_seg->setParams(vert_scan, horz_scan, min_range_, max_range_, 
                                 min_vert_angle, max_vert_angle,
                                 horz_merge_thres, vert_merge_thres, vert_scan_size,
-                                horz_scan_size, horz_extension_size, horz_skip_size, 
-                                downsample, debug, 
+                                horz_scan_size, horz_extension_size, horz_skip_size, downsample, 
                                 min_cluster_size, max_cluster_size);
     
     cloud_in.reset(new pcl::PointCloud<PointT>());
