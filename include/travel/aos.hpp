@@ -1,7 +1,10 @@
 #ifndef TRAVEL_OSEG_H
 #define TRAVEL_OSEG_H
+//
+// Created by Minho Oh & Euigon Jung on 1/31/22.
+// We really appreciate Hyungtae Lim and Prof. Hyun Myung! :)
+//
 #pragma once
-
 #include <vector>
 #include <algorithm>
 #include <iostream>

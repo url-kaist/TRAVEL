@@ -1,5 +1,9 @@
 #ifndef TRAVEL_GSEG_H
 #define TRAVEL_GSEG_H
+//
+// Created by Minho Oh & Euigon Jung on 1/31/22.
+// We really appreciate Hyungtae Lim and Prof. Hyun Myung! :)
+//
 
 #include <iostream>
 #include <Eigen/Dense>

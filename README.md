@@ -15,6 +15,7 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
 
 ### To Do 
 * This archive is still being updated. Up until the IROS'22 presentation, I will update the final version.
+- [ ] runnable node on general setting.
 - [ ] Add the application codes
 - [ ] Update for docker users
 
@@ -61,7 +62,10 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
     ```
 
 ## On your setting.
-
+I will upload an example ros node that subscribes to sensor data.
+1. Include two header files in your source. "tgs.hpp" & "aos.hpp"
+2. Initialize "travel::TravelGroundSeg<PointT>" and "travel::ObjectCluster<PointT>"
+3. Use the "setParams()" function in each class to set the parameters.
 
 ## Aplications
 - Local terrain map.
