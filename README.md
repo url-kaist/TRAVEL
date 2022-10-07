@@ -66,6 +66,8 @@ I will upload an example ros node that subscribes to sensor data.
 1. Include two header files in your source. "tgs.hpp" & "aos.hpp"
 2. Initialize "travel::TravelGroundSeg<PointT>" and "travel::ObjectCluster<PointT>"
 3. Use the "setParams()" function in each class to set the parameters.
+4. Use "travel::TravelGroundSeg.estimateGround()" function for traversable ground segmentation
+5. Use "travel::ObjectCluster.segmentObjects()" function for above-ground object segmentation
 
 ## Aplications
 - Local terrain map.
