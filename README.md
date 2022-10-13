@@ -22,7 +22,7 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
 ## Contributors
 - Minho Oh & Euigon Jung
 - email: 
-    - Minh Oh: minho.oh@kaist.ac.kr
+    - Minho Oh: minho.oh@kaist.ac.kr
     - Euigon Jung: euigon94@kaist.ac.kr
 - Advised from Hyungtae Lim and Hyun Myung @ KAIST
 
