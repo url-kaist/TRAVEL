@@ -3,25 +3,7 @@
 #include "travel/aos.hpp"
 #include "travel/tgs.hpp"
 #include "travel/node.h"
-
-#include <geometry_msgs/Pose.h>
-
-struct PointXYZILID
-{
-  PCL_ADD_POINT4D;                    // quad-word XYZ
-  float    intensity;                 ///< laser intensity reading
-  uint16_t label;                     ///< point label
-  uint16_t id;
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW     // ensure proper alignment
-} EIGEN_ALIGN16;
-
-POINT_CLOUD_REGISTER_POINT_STRUCT(PointXYZILID,
-                                  (float, x, x)
-                                  (float, y, y)
-                                  (float, z, z)
-                                  (float, intensity, intensity)
-                                  (uint16_t, label, label)
-                                  (uint16_t, id, id))
+#include "utils/utils.hpp"
 
 using PointT = PointXYZILID;
 

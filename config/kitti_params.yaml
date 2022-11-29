@@ -1,16 +1,14 @@
-# node_topic: "/node"
-# node_topic: "/carla_node"
-node_topic: "/os_deskew_node"
+node_topic: "/node"
 
 lidar:
   min_range: 1.0
   max_range: 50.0
   
   # # for Semantic KITTI dataset: HDL-64E
-  # vert_scan: 64
-  # horz_scan: 4500
-  # min_vertical_angle: -24.8
-  # max_vertical_angle: 2.0
+  vert_scan: 64
+  horz_scan: 4500
+  min_vertical_angle: -24.8
+  max_vertical_angle: 2.0
   
   # # for CARLA dataset: OS2-128
   # vert_scan: 128               # number of lidar channel
@@ -19,25 +17,24 @@ lidar:
   # max_vert_angle: 22.5
 
   # for Rough Terrain data: OS0-128
-  vert_scan: 128
-  horz_scan: 1024
-  min_vert_angle: -45.0
-  max_vert_angle: 45.0
+  # vert_scan: 128
+  # horz_scan: 1024
+  # min_vert_angle: -45.0
+  # max_vert_angle: 45.0
 
-foot_print:
-  # LiDAR-centric
-  # for Semantic KITTI
-  x_limit: []
-  y_limit: []
-
-  # for CARLA
-  x_limit: []
-  y_limit: []
-
-  # for Rough Terrain
-  x_limit: []
-  y_limit: []
-
+#foot_print:
+#  # LiDAR-centric
+#  # for Semantic KITTI
+#  x_limit: []
+#  y_limit: []
+#
+#  # for CARLA
+#  x_limit: []
+#  y_limit: []
+#
+#  # for Rough Terrain
+#  x_limit: []
+#  y_limit: []
 
 tgs:
   resolution: 5.0

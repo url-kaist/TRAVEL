@@ -1,0 +1,15 @@
+<launch>
+    <rosparam file="$(find travel)/config/kitti_params.yaml" command="load" />
+
+    <arg name="data_dir" default="" />
+    <arg name="seq" default="" />
+
+    <param name="/data_dir" type="str" value="$(arg data_dir)" />
+    <param name="/seq" type="str" value="$(arg seq)" />
+
+    <node name="travel_kitti_publisher" pkg="travel" type="travel_kitti_publisher" output="screen"/>
+    <node name="travel_node" pkg="travel" type="travel_node" output="screen" />
+
+    <!-- Run Rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find travel)/rviz/travel_kitti.rviz" />
+</launch>
