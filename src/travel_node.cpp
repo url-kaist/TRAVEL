@@ -1,26 +1,5 @@
 #define PCL_NO_PRECOMPILE
 
-#include <iostream>
-#include <fstream>
-#include <memory>
-#include <chrono>
-#include <map>
-
-#include <ros/ros.h>
-#include <pcl_ros/point_cloud.h>
-#include <pcl/common/eigen.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/search/impl/search.hpp>
-#include <pcl/search/kdtree.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/segmentation/conditional_euclidean_clustering.h>
-
-#include <tf/tf.h>
-#include <tf/transform_broadcaster.h>
-#include <opencv/cv.h>
-#include <signal.h>
-
 #include "travel/aos.hpp"
 #include "travel/tgs.hpp"
 #include "travel/node.h"

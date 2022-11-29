@@ -15,6 +15,7 @@
 #include <forward_list>
 #include <boost/optional.hpp>
 
+#include <ros/ros.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/common/io.h>
