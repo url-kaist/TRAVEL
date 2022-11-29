@@ -31,7 +31,7 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
 - ROS Melodic
 
 ## How to Build
-1. Dedendencies
+1. Dependencies
     ```
     sudo apt install cmake libeigen3-dev libboost-all-dev
     sudo apt-get install ros-melodic-jsk-recognition
@@ -46,7 +46,15 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
     ../
     catkin_make
     ```
+   
+## How to Run In KITTI (형태 작성 중)
 
+```bash
+roslaunch travel run_kitti.launch data_dir:=${ABS_DIRECTORY_OF_KITTI} seq:=${SEQUENCE_ID}
+# for example,
+# then, the bin files in `/home/shapelim/qbench/kitti/00/velodyne` are loaded in the ascending order 
+roslaunch travel run_kitti.launch data_dir:=/home/shapelim/qbench/kitti seq:=00
+```
 ## Download our dataset
 - rough_terrain_1 (24.5GB) and rough_terrain_2 (15.4GB) are our rough terrain dataset.
     
