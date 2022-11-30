@@ -2,58 +2,50 @@ node_topic: "/node"
 
 lidar:
   min_range: 1.0
-  max_range: 50.0
+  max_range: 64.0
   
-  # # for Semantic KITTI dataset: HDL-64E
+  # for Semantic KITTI dataset: HDL-64E
   vert_scan: 64
   horz_scan: 4500
   min_vertical_angle: -24.8
   max_vertical_angle: 2.0
   
-  # # for CARLA dataset: OS2-128
-  # vert_scan: 128               # number of lidar channel
-  # horz_scan: 1800              # horizontal resolution of lidar
-  # min_vert_angle: -22.5
-  # max_vert_angle: 22.5
 
-  # for Rough Terrain data: OS0-128
-  # vert_scan: 128
-  # horz_scan: 1024
-  # min_vert_angle: -45.0
-  # max_vert_angle: 45.0
 
-#foot_print:
-#  # LiDAR-centric
-#  # for Semantic KITTI
-#  x_limit: []
-#  y_limit: []
-#
-#  # for CARLA
-#  x_limit: []
-#  y_limit: []
-#
-#  # for Rough Terrain
-#  x_limit: []
-#  y_limit: []
+foot_print:
+  # LiDAR-centric
+  # for Semantic KITTI
+  x_limit: []
+  y_limit: []
+
+  # for CARLA
+  x_limit: []
+  y_limit: []
+
+  # for Rough Terrain
+  x_limit: []
+  y_limit: []
+
 
 tgs:
-  resolution: 5.0
+  resolution: 8.0
   num_iter: 3
   num_lpr: 5
   num_min_pts: 10
   th_seeds: 0.5
   th_dist: 0.125
-  th_outlier: 1.0
+  th_outlier: 0.3
   th_normal: 0.940
-  th_weight: 100
+  th_weight: 200
   th_lcc_normal: 0.03
   th_lcc_planar: 0.1
+  th_obstacle: 1.0
   refine_mode: true
   visualization: true
 
 aos:
   downsample: 1
-  car_width: 1.7
+  car_width: 3.0
   car_length: 4.2
   lidar_width_offset: -0.27
   lidar_length_offset: 0.0
