@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 
 find_package(PCL REQUIRED)
+find_package(Boost 1.54 REQUIRED)
 
 add_message_files(
   FILES
@@ -49,7 +50,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
 )
-
+link_directories(${PCL_LIBRARY_DIRS})
 
 # Declare a C++ library
 add_library(${PROJECT_NAME}
@@ -61,3 +62,9 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
 )
+
+add_executable(${PROJECT_NAME}_kitti_publisher src/kitti_publisher.cpp)
+target_link_libraries(${PROJECT_NAME}_kitti_publisher
+        ${catkin_LIBRARIES}
+        ${PCL_LIBRARIES}
+        )

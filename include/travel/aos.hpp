@@ -51,6 +51,7 @@ namespace travel {
             vector<vector<AOSNode>> nodes_;
             vector<float> vert_angles_;
             vector<vector<Point>> range_mat_;
+            vector<vector<Point>> emptyrange_mat_;
 
             // parameters
             int VERT_SCAN;
@@ -64,6 +65,8 @@ namespace travel {
             int HORZ_SKIP_SIZE;
             int HORZ_EXTENSION_SIZE;
             int DOWNSAMPLE;
+            float MIN_VERT_ANGLE;
+            float MAX_VERT_ANGLE;
             boost::optional<int> MIN_CLUSTER_SIZE;
             boost::optional<int> MAX_CLUSTER_SIZE;
 
@@ -121,16 +124,19 @@ namespace travel {
                 DOWNSAMPLE = _downsample;
                 ROS_WARN("downsample: %d", DOWNSAMPLE);
                 
-                float resolution = (_max_vert_angle - _min_vert_angle) / (_vert_scan-1);
+                MAX_VERT_ANGLE = _max_vert_angle; 
+                MIN_VERT_ANGLE = _min_vert_angle;
+                ROS_WARN("Max vertical angle : %f", MAX_VERT_ANGLE);
+                ROS_WARN("Min vertical angle : %f", MIN_VERT_ANGLE);
+
+                float resolution = (float) (MAX_VERT_ANGLE - MIN_VERT_ANGLE) / (float)(VERT_SCAN-1);
+                ROS_WARN("Vertical resolution: %f", resolution);
+
+
                 for(int i = 0; i < _vert_scan; i++)
                     vert_angles_.push_back(_min_vert_angle + i*resolution);
 
                 range_mat_.resize(VERT_SCAN, vector<Point>(HORZ_SCAN));
-                
-                // point_angle_.resize(VERT_SCAN);
-                // for (int i = 0; i < VERT_SCAN; i++) {
-                //     point_angle_[i].resize(HORZ_SCAN);
-                // }
 
                 valid_cnt_.resize(VERT_SCAN, 0);
                 nodes_.resize(VERT_SCAN, vector<AOSNode>());
@@ -154,7 +160,6 @@ namespace travel {
                 std::for_each(range_mat_.begin(), range_mat_.end(), [](vector<Point>& inner_vec) {
                     std::fill(inner_vec.begin(), inner_vec.end(), Point());
                 });
-                
                 // 1. do spherical projection
                 auto start = chrono::steady_clock::now();
                 sphericalProjection(cloud_in);
@@ -194,38 +199,45 @@ namespace travel {
                 Point point;
                 int range_chcker = 0;
                 int valid_checker = 0;
+                int count_range, count_downsample, count_out_of_row, count_out_of_col, count_out_of_mat;
+                count_range = count_downsample = count_out_of_row = count_out_of_col = count_out_of_mat = 0;
+                int count_pass = 0;
                 for (size_t i = 0; i < cloud_in->points.size(); i++) {
                     
                     range = getRange(cloud_in->points[i]);
-                    if (range < MIN_RANGE || range > MAX_RANGE)
-                        continue;
-
-                    row_idx = getRowIdx(cloud_in->points[i]);
-
-                    if (row_idx % DOWNSAMPLE != 0)
-                        continue;
-
-                    if (row_idx < 0 || row_idx >= VERT_SCAN) {
+                    if (range < MIN_RANGE || range > MAX_RANGE){
+                        count_range++;
                         continue;
                     }
-                
+                    row_idx = getRowIdx(cloud_in->points[i]);
+                    if (row_idx % DOWNSAMPLE != 0) {
+                        count_downsample++;
+                        continue;
+                    }
+                    if (row_idx < 0 || row_idx >= VERT_SCAN) {
+                        count_out_of_row++;
+                        continue;
+                    }
                     col_idx = getColIdx(cloud_in->points[i]);
                     if (col_idx < 0 || col_idx >= HORZ_SCAN) {
+                        count_out_of_col++;
                         continue;
                     }
-
                     if (range_mat_[row_idx][col_idx].valid){
+                        count_out_of_mat ++;
                         continue;
+                    } else {
+                        count_pass++;
+                        point.x = cloud_in->points[i].x;
+                        point.y = cloud_in->points[i].y;
+                        point.z = cloud_in->points[i].z;
+                        point.valid = true;
+                        point.idx = valid_cloud->points.size();
+                        valid_cloud->points.push_back(cloud_in->points[i]);
+                        range_mat_[row_idx][col_idx] = point;
+                        assert(range_mat_[row_idx][col_idx].valid == true);
+                        valid_cnt_[row_idx]++;
                     }
-                    point.x = cloud_in->points[i].x;
-                    point.y = cloud_in->points[i].y;
-                    point.z = cloud_in->points[i].z;
-                    point.valid = true;
-                    point.idx = valid_cloud->points.size();
-                    valid_cloud->points.push_back(cloud_in->points[i]);
-                    range_mat_[row_idx][col_idx] = point;
-                    assert(range_mat_[row_idx][col_idx].valid == true);
-                    valid_cnt_[row_idx]++;
                 }
                 printf("Input cloud size: %d\n", (int)cloud_in->points.size());
                 printf("Projected cloud size: %d\n", (int)valid_cloud->points.size());
