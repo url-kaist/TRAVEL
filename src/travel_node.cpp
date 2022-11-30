@@ -5,7 +5,6 @@
 #include "travel/node.h"
 #include "utils/utils.hpp"
 
-using PointT = PointXYZILID;
 
 ros::Publisher pub_nonground_cloud;
 ros::Publisher pub_ground_cloud;
@@ -22,9 +21,11 @@ pcl::PointCloud<PointT>::Ptr nonground_pc;
 pcl::PointCloud<PointT>::Ptr outlier_pc;
 pcl::PointCloud<PointT>::Ptr labeled_pc;
 
-float min_range_, max_range_;
+float  min_range_, max_range_;
+string abs_save_dir_;
+bool   save_labels_ = false;
 
-void callbackNode(const travel::node::ConstPtr &msg){
+void callbackNode(const travel::node::ConstPtr &msg) {
 
     travel::node node_msg = *msg;
     std::cout << "Seq: " << node_msg.header.seq << std::endl;
@@ -74,10 +75,16 @@ void callbackNode(const travel::node::ConstPtr &msg){
     nonground_cloud_msg.header = node_header;
     pub_nonground_cloud.publish(nonground_cloud_msg);
 
-    //Apply above-ground object segmentation
+    // Apply above-ground object segmentation
     travel_object_seg->segmentObjects(nonground_pc, labeled_pc);
     std::cout << "\033[1;35m Above-Ground Seg: -> " << labeled_pc->size() << "\033[0m" << std::endl;
 
+    // Just for 3DUIS benchmark
+    // Please refer to the site:
+    // https://codalab.lisn.upsaclay.fr/competitions/2183?secret_key=4763e3d2-1f22-45e6-803a-a862528426d2
+    if (save_labels_) {
+        saveLabels(abs_save_dir_, node_msg.header.seq, *cloud_in, *labeled_pc);
+    }
     sensor_msgs::PointCloud2 labeled_cloud_msg;
     pcl::toROSMsg(*labeled_pc, labeled_cloud_msg);
     labeled_cloud_msg.header = node_header;
@@ -95,6 +102,8 @@ int main(int argc, char **argv) {
     std::string node_topic_;
     nh.param<string>("/node_topic"          , node_topic_, "/node");
     std::cout << "\033[1;32m" << "Node topic: " << node_topic_ << "\033[0m" << std::endl;
+    nh.param<bool> ("/save_results/save_labels"  , save_labels_, false);
+    nh.param<string> ("/save_results/abs_save_dir"  , abs_save_dir_, "");
 
     int vert_scan, horz_scan;
     float min_vert_angle, max_vert_angle;
@@ -169,7 +178,7 @@ int main(int argc, char **argv) {
     pub_ground_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/ground_pc", 1);
     pub_labeled_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/segmented_pc", 1);
 
-    ros::Subscriber sub_ptCloud = nh.subscribe<travel::node>(node_topic_, 100, callbackNode, ros::TransportHints().tcpNoDelay());
+    ros::Subscriber sub_ptCloud = nh.subscribe<travel::node>(node_topic_, 4000, callbackNode, ros::TransportHints().tcpNoDelay());
     ros::spin();
 
     return 0;

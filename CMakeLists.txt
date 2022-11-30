@@ -50,6 +50,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
 )
+link_directories(${PCL_LIBRARY_DIRS})
 
 # Declare a C++ library
 add_library(${PROJECT_NAME}

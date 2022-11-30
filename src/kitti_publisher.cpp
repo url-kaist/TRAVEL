@@ -36,17 +36,19 @@ sensor_msgs::PointCloud2 cloud2msg(pcl::PointCloud<T> cloud, std::string frame_i
 int main(int argc, char**argv) {
     ros::init(argc, argv, "Ros-Kitti-Publisher");
 
+    int kitti_hz;
     ros::NodeHandle nh;
     std::string node_topic;
     nh.param<string>("/node_topic" , node_topic, "/node");
     nh.param<string>("/data_dir", data_dir, "/");
     nh.param<string>("/seq", seq, "");
+    nh.param<int>("/kitti_hz", kitti_hz, 10);
 
     cout << "\033[1;32m" << "Node topic: " << node_topic << "\033[0m" << endl;
     cout << "\033[1;32m" << "KITTI data directory: " << data_dir << "\033[0m" << endl;
     cout << "\033[1;32m" << "Sequence: " << seq << "\033[0m" << endl;
 
-    ros::Rate r(20);
+    ros::Rate r(kitti_hz);
     ros::Publisher NodePublisher = nh.advertise<travel::node>(node_topic, 100, true);
 
 
@@ -56,7 +58,7 @@ int main(int argc, char**argv) {
 
     signal(SIGINT, callbackSignalHandler);
     cout << "\033[1;32m[Kitti Publisher] Total " << N << " clouds are loaded\033[0m" << endl;
-    for (int n = 1; n < N; ++n) {
+    for (int n = 0; n < N; ++n) {
         cout << n << "th node is published!" << endl;
         pcl::PointCloud<pcl::PointXYZI> pc_curr; // (new pcl::PointCloud<PointType>);
 
