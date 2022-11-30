@@ -8,6 +8,9 @@
 #include "utils/kitti_loader.hpp"
 #include "utils/utils.hpp"
 
+#include "travel/aos.hpp"
+#include "travel/tgs.hpp"
+
 using PointType = pcl::PointXYZI;
 using namespace std;
 

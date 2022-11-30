@@ -9,23 +9,6 @@ lidar:
   horz_scan: 4500
   min_vertical_angle: -24.8
   max_vertical_angle: 2.0
-  
-
-
-foot_print:
-  # LiDAR-centric
-  # for Semantic KITTI
-  x_limit: []
-  y_limit: []
-
-  # for CARLA
-  x_limit: []
-  y_limit: []
-
-  # for Rough Terrain
-  x_limit: []
-  y_limit: []
-
 
 tgs:
   resolution: 8.0
@@ -43,18 +26,34 @@ tgs:
   refine_mode: true
   visualization: true
 
+# aos:
+#   downsample: 1
+#   car_width: 1.7
+#   car_length: 4.2
+#   lidar_width_offset: -0.27
+#   lidar_length_offset: 0.0
+#   th_horz_merg: 0.4
+#   th_vert_merg: 0.5
+#   vert_scan_size: 10
+#   horz_scan_size: 5
+#   horz_skip_size: 5
+#   horz_extension_size: 5
+#   min_cluster_size: 10
+#   max_cluster_size: 30000
+#   debug: false
+
 aos:
   downsample: 1
-  car_width: 3.0
+  car_width: 1.7
   car_length: 4.2
   lidar_width_offset: -0.27
   lidar_length_offset: 0.0
-  th_horz_merg: 0.4
+  th_horz_merg: 0.1
   th_vert_merg: 0.5
-  vert_scan_size: 10
-  horz_scan_size: 5
-  horz_skip_size: 5
-  horz_extension_size: 5
+  vert_scan_size: 6
+  horz_scan_size: 20
+  horz_skip_size: 20
+  horz_extension_size: 20
   min_cluster_size: 10
   max_cluster_size: 30000
   debug: false

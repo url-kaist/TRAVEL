@@ -126,6 +126,7 @@ namespace travel {
                     vert_angles_.push_back(_min_vert_angle + i*resolution);
 
                 range_mat_.resize(VERT_SCAN, vector<Point>(HORZ_SCAN));
+                // std::cout << "Range Mat size: Row-> " << range_mat_.size() << ", Col-> " << range_mat_[0].size() <<std::endl;
                 
                 // point_angle_.resize(VERT_SCAN);
                 // for (int i = 0; i < VERT_SCAN; i++) {
@@ -157,7 +158,9 @@ namespace travel {
                 
                 // 1. do spherical projection
                 auto start = chrono::steady_clock::now();
+                std::cout << "[AOS] cloud in size : " << cloud_in->size() <<std::endl; 
                 sphericalProjection(cloud_in);
+                std::cout << "[AOS] projected size: " << cloud_in->size() <<std::endl; 
                 auto end = chrono::steady_clock::now();
                 // cloud_out->points.resize(cloud_in->points.size());
                 printf("Creating range map: %ld ms\n", chrono::duration_cast<chrono::milliseconds>(end-start).count());
@@ -194,29 +197,42 @@ namespace travel {
                 Point point;
                 int range_chcker = 0;
                 int valid_checker = 0;
+                // int count_range, count_downsample, count_out_of_row, count_out_of_col, count_out_of_mat;
+                // count_range = count_downsample = count_out_of_row = count_out_of_col = count_out_of_mat = 0;
+                // int count_pass = 0;
                 for (size_t i = 0; i < cloud_in->points.size(); i++) {
                     
                     range = getRange(cloud_in->points[i]);
-                    if (range < MIN_RANGE || range > MAX_RANGE)
+                    if (range < MIN_RANGE || range > MAX_RANGE){
+                        // count_range++;
                         continue;
+                    }
 
                     row_idx = getRowIdx(cloud_in->points[i]);
-
-                    if (row_idx % DOWNSAMPLE != 0)
+                    // if (row_idx != 0){
+                    //     std::cout << "[AOS] Check row idx: " << row_idx << std::endl;
+                    // }
+                    if (row_idx % DOWNSAMPLE != 0) {
+                        // count_downsample++;
                         continue;
+                    }
 
                     if (row_idx < 0 || row_idx >= VERT_SCAN) {
+                        // count_out_of_row++;
                         continue;
                     }
                 
                     col_idx = getColIdx(cloud_in->points[i]);
                     if (col_idx < 0 || col_idx >= HORZ_SCAN) {
+                        // count_out_of_col++;
                         continue;
                     }
 
                     if (range_mat_[row_idx][col_idx].valid){
+                        // count_out_of_mat ++;
                         continue;
                     }
+                    // count_pass++;
                     point.x = cloud_in->points[i].x;
                     point.y = cloud_in->points[i].y;
                     point.z = cloud_in->points[i].z;
@@ -227,6 +243,12 @@ namespace travel {
                     assert(range_mat_[row_idx][col_idx].valid == true);
                     valid_cnt_[row_idx]++;
                 }
+                // std::cout << "Count: pass->" << count_pass << std::endl;
+                // std::cout << "Count: out_of_r   ->" << count_range << std::endl;
+                // std::cout << "Count: downsample ->" << count_downsample << std::endl;
+                // std::cout << "Count: out_of_row ->" << count_out_of_row << std::endl;
+                // std::cout << "Count: out_of_col ->" << count_out_of_col << std::endl;
+                // std::cout << "Count: out_of_mat ->" << count_out_of_mat << std::endl;
                 printf("Input cloud size: %d\n", (int)cloud_in->points.size());
                 printf("Projected cloud size: %d\n", (int)valid_cloud->points.size());
                 *cloud_in = *valid_cloud;

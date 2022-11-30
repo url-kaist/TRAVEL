@@ -30,8 +30,8 @@ aos:
   downsample: 1
   car_width: 1.0
   car_length: 2.0
-  lidar_width_offset: -0.27
-  lidar_length_offset: 0.0
+  lidar_width_offset: 0.0
+  lidar_length_offset: 0.8
   th_horz_merg: 0.1
   th_vert_merg: 0.2
   vert_scan_size: 10
