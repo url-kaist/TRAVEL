@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     nh.param<float> ("/lidar/max_range"     , max_range_, 30.0);
     nh.param<int>   ("/lidar/vert_scan"     , vert_scan, 64);
     nh.param<int>   ("/lidar/horz_scan"     , horz_scan, 1800);
-    nh.param<float> ("/lidar/min_vert_angle", min_vert_angle, 50.0);
+    nh.param<float> ("/lidar/min_vert_angle", min_vert_angle, -30.0);
     nh.param<float> ("/lidar/max_vert_angle", max_vert_angle, 50.0);
 
     float tgf_res, th_seeds, th_dist, th_outlier, th_normal, th_weight, th_lcc_normal_similarity, th_lcc_planar_dist, th_obstacle;
