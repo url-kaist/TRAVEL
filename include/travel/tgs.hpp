@@ -160,10 +160,6 @@ namespace travel {
         pcl::PointCloud<PointType> ptCloud_nodewise_outliers_;
         pcl::PointCloud<PointType> ptCloud_nodewise_obstacle_;
 
-        pcl::PointCloud<PointType> ptCloud_nodewise_nonground_tmp;
-        pcl::PointCloud<PointType> ptCloud_nodewise_ground_tmp;
-        pcl::PointCloud<PointType> ptCloud_nodewise_obstacle_tmp;
-
     public:
         // TravelGroundSeg(ros::NodeHandle* nh):node_handle_(*nh){
         TravelGroundSeg(){
@@ -253,10 +249,6 @@ namespace travel {
             ptCloud_nodewise_outliers_.reserve(NODEWISE_PTCLOUDSIZE);
             ptCloud_nodewise_obstacle_.clear();
             ptCloud_nodewise_obstacle_.reserve(NODEWISE_PTCLOUDSIZE);
-
-            ptCloud_nodewise_nonground_tmp.reserve(NODEWISE_PTCLOUDSIZE);
-            ptCloud_nodewise_ground_tmp.reserve(NODEWISE_PTCLOUDSIZE);
-            ptCloud_nodewise_obstacle_tmp.reserve(NODEWISE_PTCLOUDSIZE);
 
             if (VIZ_MDOE_) {
                 viz_trigrid_polygons_.polygons.clear();
