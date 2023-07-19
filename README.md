@@ -1,4 +1,5 @@
-# TRAVEL for RA-L'22 w/ IROS Option (Best Paper Awards from RA-L)
+# TRAVEL for RA-L'22 w/ IROS Option 
+# Best Paper Award winner from RA-L 2022
 Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentation using Graph Representation for 3D LiDAR Scans", which is accepted by RA-L with IROS'22 option.
 
 <a href="https://www.youtube.com/watch?v=B3CWXAsPwzU"><img src="https://img.shields.io/badge/YouTube-FF0000.svg"/></a>
