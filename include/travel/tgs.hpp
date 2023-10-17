@@ -1302,6 +1302,10 @@ namespace travel {
                 if (!tgf_in[r_i][c_i][s_i].is_curr_data) {
                     continue;
                 }
+                ptCloud_nodewise_ground_.clear();
+                ptCloud_nodewise_nonground_.clear();
+                ptCloud_nodewise_outliers_.clear();
+                ptCloud_nodewise_obstacle_.clear();
                 if (tgf_in[r_i][c_i][s_i].node_type == GROUND) {
                     segmentNodeGround(tgf_in[r_i][c_i][s_i], ptCloud_nodewise_ground_, ptCloud_nodewise_nonground_, ptCloud_nodewise_obstacle_, ptCloud_nodewise_outliers_);
                 } else {

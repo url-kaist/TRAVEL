@@ -1,0 +1,41 @@
+node_topic: "/node"
+
+lidar:
+  min_range: 1.0
+  max_range: 56.0
+  vert_scan: 64
+  horz_scan: 4500
+  min_vert_angle: -24.8
+  max_vert_angle: 2.0
+
+tgs:
+  resolution: 8.0
+  num_iter: 3
+  num_lpr: 5
+  num_min_pts: 10
+  th_seeds: 0.5
+  th_dist: 0.2
+  th_outlier: 0.3
+  th_normal: 0.940
+  th_weight: 200
+  th_lcc_normal: 0.03
+  th_lcc_planar: 0.1
+  th_obstacle: 1.0
+  refine_mode: true
+  visualization: true
+
+aos:
+  downsample: 1
+  car_width: 3.0
+  car_length: 4.2
+  lidar_width_offset: -0.27
+  lidar_length_offset: 0.0
+  th_horz_merg: 0.5
+  th_vert_merg: 0.5
+  vert_scan_size: 10
+  horz_scan_size: 20
+  horz_skip_size: 20
+  horz_extension_size: 100
+  min_cluster_size: 10
+  max_cluster_size: 300000
+  debug: false

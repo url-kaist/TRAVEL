@@ -1,0 +1,8 @@
+<launch>
+    <rosparam file="$(find travel)/config/rough_terrain_params.yaml" command="load" />
+    
+    <node name="travel_run" pkg="travel" type="travel_run" output="screen" />
+
+    <!-- Run Rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find travel)/rviz/travel_demo.rviz" />
+</launch>
