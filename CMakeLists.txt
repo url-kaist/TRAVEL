@@ -64,6 +64,7 @@ target_link_libraries(${PROJECT_NAME}_node
 )
 
 add_executable(${PROJECT_NAME}_kitti_publisher src/kitti_publisher.cpp)
+add_dependencies(${PROJECT_NAME}_kitti_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_kitti_publisher
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
