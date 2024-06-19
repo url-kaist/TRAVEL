@@ -90,7 +90,6 @@ int main(int argc, char **argv) {
 
     // Set Parameters
     std::string cloud_topic_;
-    nh.param<string> ("/node_topic"  , cloud_topic_, "/ouster/points");
     std::cout << "\033[1;32m" << "Cloud topic: " << cloud_topic_ << "\033[0m" << std::endl;
     nh.param<bool> ("/save_results/save_labels"  , save_labels_, false);
     nh.param<string> ("/save_results/abs_save_dir"  , abs_save_dir_, "");
@@ -168,7 +167,7 @@ int main(int argc, char **argv) {
     pub_ground_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/ground_pc", 1);
     pub_labeled_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/segmented_pc", 1);
 
-    ros::Subscriber sub_ptCloud = nh.subscribe<sensor_msgs::PointCloud2>(cloud_topic_, 4000, callbackCloud, ros::TransportHints().tcpNoDelay());
+    ros::Subscriber sub_ptCloud = nh.subscribe<sensor_msgs::PointCloud2>("/ouster/points", 4000, callbackCloud, ros::TransportHints().tcpNoDelay());
     ros::spin();
 
     return 0;
