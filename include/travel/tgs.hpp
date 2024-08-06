@@ -702,7 +702,7 @@ namespace travel {
             for (int s_i = 0; s_i < 4; s_i++){
                 if (tgf_in[r_i][c_i][s_i].is_curr_data){
                     if (tgf_in[r_i][c_i][s_i].node_type == GROUND){
-                        if (tgf_in[r_i][c_i][s_i].weight > tgf_in[max_tri_idx.row][max_tri_idx.row][max_tri_idx.tri].weight){
+                        if (tgf_in[r_i][c_i][s_i].weight > tgf_in[max_tri_idx.row][max_tri_idx.col][max_tri_idx.tri].weight){
                             max_tri_idx.row = r_i;
                             max_tri_idx.col = c_i;
                             max_tri_idx.tri = s_i;
