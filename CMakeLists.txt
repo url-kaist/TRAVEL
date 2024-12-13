@@ -52,26 +52,8 @@ include_directories(
 )
 link_directories(${PCL_LIBRARY_DIRS})
 
-# Declare a C++ library
-add_library(${PROJECT_NAME}
-  src/travel_node.cpp
-)
-
-add_executable(${PROJECT_NAME}_node src/travel_node.cpp)
-target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
-  ${PCL_LIBRARIES}
-)
-
-add_executable(${PROJECT_NAME}_kitti_publisher src/kitti_publisher.cpp)
-add_dependencies(${PROJECT_NAME}_kitti_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_kitti_publisher
-        ${catkin_LIBRARIES}
-        ${PCL_LIBRARIES}
-        )
-
-add_executable(${PROJECT_NAME}_run src/travel_run.cpp)
-target_link_libraries(${PROJECT_NAME}_run
+add_executable(${PROJECT_NAME}_main src/main.cpp)
+target_link_libraries(${PROJECT_NAME}_main
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
 )

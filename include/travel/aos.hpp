@@ -281,7 +281,7 @@ namespace travel {
                             assert(cloud_in->points[p->idx].z == p->z);
                             T point = cloud_in->points[p->idx];
                             point.intensity = label;
-                            cloud_out->points.push_back(point);
+                            cloud_out->points.emplace_back(point);
                             pt_cnt++;
                         } else {
                             ROS_ERROR("point invalid");

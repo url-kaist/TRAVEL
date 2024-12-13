@@ -1,8 +1,80 @@
 <launch>
-    <rosparam file="$(find travel)/config/rough_terrain_params.yaml" command="load" />
+    <rosparam file="$(find travel)/config/velodyne_16.yaml" command="load" />
     
-    <node name="travel_run" pkg="travel" type="travel_run" output="screen" />
+    <arg name="robot_name" default="acl_jackal2" doc="NOTE(HL): For '10_14' datasets, all their sensor frame prefixs are 'acl_jackal2`."/>
+    <arg name="sensor_type" default="velodyne16" doc="'rgbd', 'velodyne16', or 'ouster64'"/>
+    
+    <arg name="use_offline_semantics" default="false" doc="use more precise semantics from offline semantic segmentation"/>
+    <arg name="use_compressed_transport" default="true" doc="If Kimera-VIO is used as the odometry this should be set to false. If LiDAR odometry is used, it should be set to true."/>
+    <arg name="use_lidar_depth" default="$(eval 'true' if arg('sensor_type') in ['ouster64', 'velodyne16'] else 'false')" doc="Whether to use LiDAR setup or RGB-D setup"/>
+    <arg name="color_mesh_by_label" default="false" doc="display mesh colored by semantic label"/>
+
+    <arg name="robot_frame" default="$(arg robot_name)/base" doc="robot body tf frame"/>
+    <arg name="odom_frame" default="$(arg robot_name)/odom" doc="odometry (map) frame"/>
+
+    <!-- Sensor frame for volumetric mapping. LiDAR uses LiDAR frame, camera uses camera's pose frame -->
+    <arg name="sensor_frame" default="$(eval arg('robot_name') + '/velodyne_link' if arg('sensor_type') == 'velodyne16' else
+                                             (arg('robot_name') + '/forward_infra1_optical_frame' if arg('sensor_type') == 'rgbd' else
+                                             arg('robot_name') + '/ouster_link'))"/> 
+
+  <arg name="hydra_config_path" default="$(find hydra)/config/datasets/kimera_multi_$(arg sensor_type).yaml" 
+        doc="config path to set params for meshes and layers. It should be different depending on the sensor setups."/>
+
+    <!-- semantics -->
+    <arg name="labelspace_name" default="ade20k_mit" doc="semantic label space"/>
+    <arg name="semantic_map_path" default="$(find hydra_ros)/config/color/$(arg labelspace_name).csv"/>
+    <!-- If uncomment below line, the color of Hydra become more distinguisable (in other words, it has different color patterns -->
+    <arg name="colormap_path" default="$(find hydra_ros)/config/color/$(arg labelspace_name).csv" doc="Once you off the debug mode"/>
+
+    <arg name="use_prerecorded_semantics" default="false" doc="Use precorded labels as input"/>
+
+    <arg name="rgb_decompressed_topic" default="/$(arg robot_name)/forward/color/image_raw"/>
+    <arg name="rgb_topic" default="/$(arg robot_name)/forward/color/image_raw/compressed"/>
+    <arg name="rgb_info_topic" default="/$(arg robot_name)/forward/color/camera_info"/>
+    <arg name="depth_topic" default="/$(arg robot_name)/forward/depth/image_rect_raw"/>
+    <arg name="label_topic" default="semantic_inference/semantic/image_raw" unless="$(arg use_offline_semantics)"/>
+   
+    <arg name="need_compressed"
+         value="$(eval arg('use_compressed_transport') and not arg('use_prerecorded_semantics'))"/>
+
+    <group unless="$(arg use_offline_semantics)">
+        <remap from="semantic_inference/color/image_raw/compressed" to="$(arg rgb_topic)"/>
+        <remap from="semantic_inference/labels/image_raw" to="$(arg label_topic)" if="$(arg use_prerecorded_semantics)"/>
+        <include file="$(find semantic_inference_ros)/launch/semantic_inference.launch" pass_all_args="true">
+            <arg name="rgb_image_transport" value="compressed" if="$(arg need_compressed)"/>
+            <arg name="rgb_image_transport" value="raw" unless="$(arg need_compressed)"/>
+        </include>
+    </group>
+
+    <!-- (NOTE) it share the `nodelet manager` from "semantic_inference" -->
+    <arg name="semantic_topic" default="/semantic_inference/semantic/image_raw" doc="It should be from `semantic_inference/semantic`, not from `semantic_inference/semantic_color`"/>
+    <!-- <arg name="lidar_topic" default="/$(arg robot_name)/locus/cloud_registered_lidar" doc="LiDAR point cloud from SPARK-Fast-LIO2"/> -->
+    <arg name="lidar_topic" default="/benchmark/labeled_cloud"/>
+    <arg name="labeled_pointcloud_topic" default="/$(arg robot_name)/semantic_pointcloud"/>
+    <arg name="colored_pointcloud_topic" default="/$(arg robot_name)/semantic_colored_pointcloud"/>
+    <arg name="output_cloud_reference_frame" default="lidar" doc="'lidar' or 'camera'. It should be 'lidar' when you directly run Hydra in LiDAR mode"/>
+
+    <node if="$(arg use_lidar_depth)" pkg="nodelet" type="nodelet" name="semantic_projector"
+              args="load semantic_pointcloud/projection nodelet_manager --no-bond"
+              output="screen"
+              required="true">
+        <param name="projector/output_cloud_reference_frame" value="$(arg output_cloud_reference_frame)"/>
+        <param name="projector/colormap_path" value="$(arg semantic_map_path)"/>
+        <param name="output_queue_size" value="10"/>
+        <param name="output_cloud_reference_frame" value="$(arg output_cloud_reference_frame)"/>
+        <param name="create_color_with_label" value="true"/>
+        <remap from="~semantic_image" to="$(arg semantic_topic)"/>
+        <remap from="~camera_info" to="$(arg rgb_info_topic)"/>
+        <remap from="~cloud" to="$(arg lidar_topic)"/>
+        <remap from="~semantic_pointcloud" to="$(arg labeled_pointcloud_topic)"/>
+        <remap from="~semantic_colored_pointcloud" to="$(arg colored_pointcloud_topic)"/>
+    </node>
+    
+    <node name="travel_run" pkg="travel" type="travel_main" output="screen">
+    <param name="labeled_cloud" value="$(arg labeled_pointcloud_topic)"/>
+    </node>
+
 
     <!-- Run Rviz -->
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find travel)/rviz/travel_demo.rviz" />
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" args="-d $(find travel)/rviz/acl_jackal2_vel16.rviz" />
 </launch>

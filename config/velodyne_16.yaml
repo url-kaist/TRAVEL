@@ -1,0 +1,39 @@
+node_topic: "/benchmark/labeled_cloud"
+
+lidar:
+  min_range: 1.0
+  max_range: 64.0
+
+  # See velodyne puck vlp 16 datasheet
+  vert_scan: 16
+  horz_scan: 1800
+  min_vert_angle: -15.0
+  max_vert_angle: 15.0
+
+tgs:
+  resolution: 2.0
+  num_iter: 3
+  num_lpr: 5
+  num_min_pts: 10
+  th_seeds: 0.5
+  th_dist: 0.125
+  th_outlier: 1.0
+  th_normal: 0.940
+  th_weight: 100
+  th_lcc_normal: 0.03
+  th_lcc_planar: 0.1
+  th_obstacle: 1.0
+  refine_mode: true
+  visualization: true
+
+aos:
+  downsample: 1
+  th_horz_merg: 0.1 # 0.4 -> 0.8 because Vel16 is more sparse
+  th_vert_merg: 0.5
+  vert_scan_size: 10
+  horz_scan_size: 20
+  horz_skip_size: 20
+  horz_extension_size: 10
+  min_cluster_size: 10
+  max_cluster_size: 30000
+  debug: true  # Not in use
