@@ -14,18 +14,6 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
 ### Keywords
 Object segmentation, Traversable ground segmentation, Graph search, Autonomous navigation, LiDAR
 
-### To Do 
-* This archive is still being updated. Up until the IROS'22 presentation, I will update the final version.
-- [ ] runnable node on general setting.
-- [ ] Add the application codes
-- [ ] Update for docker users
-
-## Contributors
-- Minho Oh & Euigon Jung
-- email: 
-    - Minho Oh: minho.oh@kaist.ac.kr
-    - Euigon Jung: euigon94@gmail.com
-- Advised from Hyungtae Lim and Hyun Myung @ KAIST
 
 ## Test Env.
 - Ubuntu 18.04 LTS
@@ -47,29 +35,14 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
     ../
     catkin_make
     ```
-   
-## How to Run In KITTI 
-
-```bash
-roslaunch travel run_kitti.launch data_dir:=${ABS_DIRECTORY_OF_KITTI} seq:=${SEQUENCE_ID}
-# for example,
-# then, the bin files in `/home/shapelim/qbench/kitti/00/velodyne` are loaded in the ascending order 
-roslaunch travel run_kitti.launch data_dir:=/home/shapelim/qbench/kitti seq:=00
-```
-
-## Download our dataset
-- rough_terrain_1 (24.5GB) and rough_terrain_2 (15.4GB) are our rough terrain dataset.
-    
-    ```
-    wget https://urserver.kaist.ac.kr/publicdata/TRAVEL_22/rough_terrain_1.bag
-    wget https://urserver.kaist.ac.kr/publicdata/TRAVEL_22/rough_terrain_2.bag
-    ```
     
 ## How to Run TRAVEL
+
 - RUN!
-    ```
-    roslaunch travel run.launch
-    ```
+
+```
+roslaunch travel travel_run.launch
+```
 
 ## On your setting.
 1. Include two header files in your source. "tgs.hpp" & "aos.hpp"
@@ -79,14 +52,6 @@ roslaunch travel run_kitti.launch data_dir:=/home/shapelim/qbench/kitti seq:=00
 5. Use "travel::ObjectCluster.segmentObjects()" function for above-ground object segmentation
 * I will upload an example ros node that subscribes to sensor data.
 * If you want to use TRAVEL with python code, then visit here (https://github.com/darrenjkt/TRAVEL). Thank you Darren :)
-
-## Aplications
-- Local terrain map.
-
-- Global traversable map.
-
-- Global static traversable map by using TRAVEL with [ERASOR](https://github.com/LimHyungTae/ERASOR)
-![traversable_map](https://user-images.githubusercontent.com/47359642/193323305-288da2c8-5083-45e8-8781-815ae8ee592d.png)
 
 ## Citation
 If our research has been helpful, please cite the below papers:

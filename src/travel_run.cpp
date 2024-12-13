@@ -14,8 +14,7 @@ ros::Publisher pub_raw_cloud;
 boost::shared_ptr<travel::TravelGroundSeg<PointT>> travel_ground_seg;
 boost::shared_ptr<travel::ObjectCluster<PointT>> travel_object_seg;
 
-pcl::PointCloud<PointT>::Ptr cloud_in;
-pcl::PointCloud<PointT>::Ptr filtered_pc;
+pcl::PointCloud<pcl::PointXYZL>::Ptr cloud_in;
 pcl::PointCloud<PointT>::Ptr ground_pc;
 pcl::PointCloud<PointT>::Ptr nonground_pc;
 pcl::PointCloud<PointT>::Ptr outlier_pc;
@@ -27,7 +26,6 @@ bool   save_labels_ = false;
 
 void callbackCloud(const sensor_msgs::PointCloud2ConstPtr &msg) {
     cloud_in->clear();
-    filtered_pc->clear();
     ground_pc->clear();
     nonground_pc->clear();
     labeled_pc->clear();
@@ -39,10 +37,8 @@ void callbackCloud(const sensor_msgs::PointCloud2ConstPtr &msg) {
     std::cout<< "Cloud size: " << cloud_in->size() << std::endl;
     pub_raw_cloud.publish(msg);
 
-    // Filter nan points and points out of range
-    filtered_pc->header = cloud_in->header;
-    filtered_pc->points.reserve(cloud_in->points.size());
-    for (auto &point : cloud_in->points){
+    PointT pt;
+    for (auto &point : cloud_in->points) {
         bool is_nan = std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z);
         double pt_range = 0.0;
         if (is_nan){
@@ -52,14 +48,18 @@ void callbackCloud(const sensor_msgs::PointCloud2ConstPtr &msg) {
         if (pt_range <= min_range_ || pt_range >= max_range_){
             continue;
         }
-        filtered_pc->push_back(point);
-    }
 
-    // Apply traversable ground segmentation
-    double ground_seg_time = 0.0;
-    travel_ground_seg->estimateGround(*filtered_pc, *ground_pc, *nonground_pc, ground_seg_time);
-    std::cout << "\033[1;35m Traversable-Ground Seg: " << filtered_pc->size() << " -> Ground: " << ground_pc->size() << ", NonGround: " << nonground_pc->size() << "\033[0m" << std::endl;
-    std::cout << "Traversable-Ground Seg time: " << ground_seg_time << std::endl;
+        pt.x = point.x;
+        pt.y = point.y;
+        pt.z = point.z;
+        // Non-ground points
+        if (point.label == 0) {
+          nonground_pc->emplace_back(pt);
+        // Ground points
+        } else {
+          ground_pc->emplace_back(pt);
+        }
+    }
 
     sensor_msgs::PointCloud2 ground_cloud_msg;
     pcl::toROSMsg(*ground_pc, ground_cloud_msg);
@@ -157,8 +157,7 @@ int main(int argc, char **argv) {
                                 horz_scan_size, horz_extension_size, horz_skip_size, downsample, 
                                 min_cluster_size, max_cluster_size);
     
-    cloud_in.reset(new pcl::PointCloud<PointT>());
-    filtered_pc.reset(new pcl::PointCloud<PointT>());
+    cloud_in.reset(new pcl::PointCloud<pcl::PointXYZL>());
     ground_pc.reset(new pcl::PointCloud<PointT>());
     nonground_pc.reset(new pcl::PointCloud<PointT>());
     labeled_pc.reset(new pcl::PointCloud<PointT>());

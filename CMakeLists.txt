@@ -69,3 +69,11 @@ target_link_libraries(${PROJECT_NAME}_kitti_publisher
         ${catkin_LIBRARIES}
         ${PCL_LIBRARIES}
         )
+
+add_executable(${PROJECT_NAME}_run src/travel_run.cpp)
+target_link_libraries(${PROJECT_NAME}_run
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+)
+
+
