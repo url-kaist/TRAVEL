@@ -1,4 +1,5 @@
 node_topic: "/benchmark/labeled_cloud"
+labeled_cloud_topic: "/acl_jackal2/semantic_pointcloud"
 
 lidar:
   min_range: 1.0

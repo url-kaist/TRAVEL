@@ -5,11 +5,24 @@
 #include "travel/node.h"
 #include "utils/utils.hpp"
 
+#include <pcl/ModelCoefficients.h>
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/search/kdtree.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/segmentation/extract_clusters.h>
 
 ros::Publisher pub_nonground_cloud;
 ros::Publisher pub_ground_cloud;
 ros::Publisher pub_labeled_cloud;
 ros::Publisher pub_raw_cloud;
+
+ros::Publisher pub_hydra_labeled_cloud;
 
 boost::shared_ptr<travel::TravelGroundSeg<PointT>> travel_ground_seg;
 boost::shared_ptr<travel::ObjectCluster<PointT>> travel_object_seg;
@@ -24,45 +37,44 @@ float  min_range_, max_range_;
 string abs_save_dir_;
 bool   save_labels_ = false;
 
-// Clusters findClusters(const MeshSegmenter::Config& config,
-//                       const kimera_pgmo::MeshDelta& delta,
-//                       const std::vector<size_t>& indices) {
-//   pcl::IndicesPtr pcl_indices(new pcl::Indices(indices.begin(), indices.end()));
+pcl::PointCloud<pcl::PointXYZL> findClusters(const pcl::PointCloud<pcl::PointXYZRGBL>::Ptr& labeled_points) {
+    pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud(new pcl::PointCloud<pcl::PointXYZ>());
+    xyz_cloud->reserve(labeled_points->size());
 
-//   KdTreeT::Ptr tree(new KdTreeT());
-//   tree->setInputCloud(delta.vertex_updates, pcl_indices);
+    for (const auto& point: *labeled_points) {
+        xyz_cloud->emplace_back(pcl::PointXYZ(point.x, point.y, point.z));
+    }
+    
+    pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
+    tree->setInputCloud(xyz_cloud);
 
-//   pcl::EuclideanClusterExtraction<pcl::PointXYZRGBA> estimator;
-//   estimator.setClusterTolerance(config.cluster_tolerance);
-//   estimator.setMinClusterSize(config.min_cluster_size);
-//   estimator.setMaxClusterSize(config.max_cluster_size);
-//   estimator.setSearchMethod(tree);
-//   estimator.setInputCloud(delta.vertex_updates);
-//   estimator.setIndices(pcl_indices);
+    pcl::EuclideanClusterExtraction<pcl::PointXYZ> estimator;
+    estimator.setClusterTolerance(1.25);
+    estimator.setMinClusterSize(15);
+    estimator.setMaxClusterSize(30000);
+    estimator.setSearchMethod(tree);
+    estimator.setInputCloud(xyz_cloud);
+    
+    pcl::PointCloud<pcl::PointXYZL> clusters;
 
-//   std::vector<pcl::PointIndices> cluster_indices;
-//   estimator.extract(cluster_indices);
+    std::vector<pcl::PointIndices> cluster_indices;
+    estimator.extract(cluster_indices);
 
-//   Clusters clusters;
-//   clusters.resize(cluster_indices.size());
-//   for (size_t k = 0; k < clusters.size(); ++k) {
-//     auto& cluster = clusters.at(k);
-//     const auto& curr_indices = cluster_indices.at(k).indices;
-//     for (const auto local_idx : curr_indices) {
-//       cluster.indices.push_back(delta.getGlobalIndex(local_idx));
+    uint32_t cluster_id = 1; 
+    for (const auto& indices : cluster_indices) {
+        for (const auto& idx : indices.indices) {
+            pcl::PointXYZL point;
+            point.x = xyz_cloud->points[idx].x;
+            point.y = xyz_cloud->points[idx].y;
+            point.z = xyz_cloud->points[idx].z;
+            point.label = cluster_id; 
+            clusters.push_back(point);
+        }
+        ++cluster_id; 
+    }
 
-//       const auto& p = delta.vertex_updates->at(local_idx);
-//       const Eigen::Vector3d pos(p.x, p.y, p.z);
-//       cluster.centroid += pos;
-//     }
-
-//     if (curr_indices.size()) {
-//       cluster.centroid /= curr_indices.size();
-//     }
-//   }
-
-//   return clusters;
-// }
+    return clusters; 
+}
 
 void callbackCloud(const sensor_msgs::PointCloud2ConstPtr &msg) {
     cloud_in->clear();
@@ -85,7 +97,7 @@ void callbackCloud(const sensor_msgs::PointCloud2ConstPtr &msg) {
             continue;
         }    
         pt_range = sqrt(pow(point.x, 2) + pow(point.y, 2) + pow(point.z, 2));
-        if (pt_range <= min_range_ || pt_range >= max_range_){
+        if (pt_range <= min_range_  || pt_range >= max_range_) {
             continue;
         }
 
@@ -113,7 +125,6 @@ void callbackCloud(const sensor_msgs::PointCloud2ConstPtr &msg) {
 
     // Apply above-ground object segmentation
     travel_object_seg->segmentObjects(nonground_pc, labeled_pc);
-    std::cout << "\033[1;35m Above-Ground Seg: -> " << labeled_pc->size() << "\033[0m" << std::endl;
 
     sensor_msgs::PointCloud2 labeled_cloud_msg;
     pcl::toROSMsg(*labeled_pc, labeled_cloud_msg);
@@ -124,20 +135,24 @@ void callbackCloud(const sensor_msgs::PointCloud2ConstPtr &msg) {
 }
 
 void callbackSegmentedCloud(const sensor_msgs::PointCloud2ConstPtr &msg) {
-
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr segmented_pc;
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr filtered_pc;
+    pcl::PointCloud<pcl::PointXYZRGBL>::Ptr segmented_pc(new pcl::PointCloud<pcl::PointXYZRGBL>);
+    pcl::PointCloud<pcl::PointXYZRGBL>::Ptr filtered_pc(new pcl::PointCloud<pcl::PointXYZRGBL>);
+    pcl::PointCloud<pcl::PointXYZL>::Ptr clustered_pc(new pcl::PointCloud<pcl::PointXYZL>);
     std_msgs::Header cloud_header = msg->header;
 
     // Convert to PCL
     pcl::fromROSMsg(*msg, *segmented_pc);
-    
-    PointT pt;
     static std::vector<uint32_t> object_labels ={2, 11, 14, 15, 16, 17, 18, 24, 26, 27, 29, 32, 33, 
                                                 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47};
 
-    filtered_pc->reserve(segmented_pc->size());
+    std::unordered_map<uint32_t, pcl::PointCloud<pcl::PointXYZRGBL>::Ptr> label_indices;
+    for (const auto& label: object_labels) {
+        pcl::PointCloud<pcl::PointXYZRGBL>::Ptr empty_cloud(new pcl::PointCloud<pcl::PointXYZRGBL>());
+        label_indices[label] = empty_cloud;
+    }
 
+    int count = 0;
+    clustered_pc->reserve(segmented_pc->size());
     std::set<uint32_t> seen_labels;
     for (auto &point : segmented_pc->points) {
         bool is_nan = std::isnan(point.x) || std::isnan(point.y) || std::isnan(point.z);
@@ -149,72 +164,31 @@ void callbackSegmentedCloud(const sensor_msgs::PointCloud2ConstPtr &msg) {
         if (pt_range <= min_range_ || pt_range >= 40.0){
             continue;
         }
-
-        if (std::find(object_labeles.begin(), object_labeles.end(), point.label) != object_labeles.end()) {
-           filtered_pc->emplace_back(point);
+        
+        if (label_indices.count(point.label)) {
+           ++count;
+           label_indices[point.label]->emplace_back(point);
         }
     }
 
-    auto getLabelIndices[&](const std::set<uint32_t>& desired_labels,
-                            const kimera_pgmo::MeshDelta& delta,
-                            const std::vector<size_t>& indices) {
-        const auto& labels = delta.semantic_updates;
-
-        std::map<uint32_t, std::vector<size_t>> label_indices;
-        std::set<uint32_t> seen_labels;
-        for (const auto idx : indices) {
-          if (static_cast<size_t>(idx) >= labels.size()) {
-            LOG(ERROR) << "bad index " << idx << " (of " << labels.size() << ")";
+    const int min_cluster_size = 15; 
+  
+    for (const auto &[label, cloud]: label_indices) {
+        if (cloud->size() < min_cluster_size) {
             continue;
-          }
-
-          const auto label = labels[idx];
-          seen_labels.insert(label);
-          if (!desired_labels.count(label)) {
-            continue;
-          }
-
-          auto iter = label_indices.find(label);
-          if (iter == label_indices.end()) {
-            iter = label_indices.emplace(label, std::vector<size_t>()).first;
-          }
-
-          iter->second.push_back(idx);
         }
-
-        VLOG(2) << "[Mesh Segmenter] Seen labels: " << printLabels(seen_labels);
-        return label_indices;
-    };
-
-    getLabelIndices(desired);
-
-     
-    for (const auto label : labels_) {
-        if (!label_indices.count(label)) {
-          continue;
+        const auto& clusters = findClusters(cloud);
+        *(clustered_pc) += clusters;
     }
-
-    if (label_indices.at(label).size() < config.min_cluster_size) {
-        continue;
-    }
-
-    const auto clusters = findClusters(config, delta, label_indices.at(label));
-
-    VLOG(2) << "[Mesh Segmenter]  - Found " << clusters.size()
-            << " cluster(s) of label " << static_cast<int>(label);
-    label_clusters.insert({label, clusters});
-  }
-
-    travel_object_seg->segmentObjects(nonground_pc, labeled_pc);
-    std::cout << "\033[1;35m Above-Ground Seg: -> " << labeled_pc->size() << "\033[0m" << std::endl;
-
+    
     sensor_msgs::PointCloud2 labeled_cloud_msg;
-    pcl::toROSMsg(*labeled_pc, labeled_cloud_msg);
+    pcl::toROSMsg(*clustered_pc, labeled_cloud_msg);
     labeled_cloud_msg.header = cloud_header;
-    pub_labeled_cloud.publish(labeled_cloud_msg);
+    pub_hydra_labeled_cloud.publish(labeled_cloud_msg);
 
     return;
 }
+
 int main(int argc, char **argv) {
     ros::init(argc, argv, "travel_graph_clsuter");
     ros::NodeHandle nh;
@@ -225,7 +199,6 @@ int main(int argc, char **argv) {
     std::string labeled_cloud_topic_;
     nh.param<string> ("/node_topic"  , cloud_topic_, "/ouster/points");
     nh.param<string> ("/labeled_cloud_topic"  , labeled_cloud_topic_, "");
-labeled_cloud
     std::cout << "\033[1;32m" << "Cloud topic: " << cloud_topic_ << "\033[0m" << std::endl;
     nh.param<bool> ("/save_results/save_labels"  , save_labels_, false);
     nh.param<string> ("/save_results/abs_save_dir"  , abs_save_dir_, "");
@@ -301,6 +274,8 @@ labeled_cloud
     pub_nonground_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/nonground_pc", 1);
     pub_ground_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/ground_pc", 1);
     pub_labeled_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/segmented_pc", 1);
+
+    pub_hydra_labeled_cloud = nh.advertise<sensor_msgs::PointCloud2>("travel/hydra_pipeline/segmented_pc", 1);
 
     ros::Subscriber GrundLabeledCloudSub = nh.subscribe<sensor_msgs::PointCloud2>(cloud_topic_, 4000, callbackCloud, ros::TransportHints().tcpNoDelay());
 

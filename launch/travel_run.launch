@@ -77,4 +77,6 @@
 
     <!-- Run Rviz -->
     <node name="$(anon rviz)" pkg="rviz" type="rviz" args="-d $(find travel)/rviz/acl_jackal2_vel16.rviz" />
+
+    <node name="$(anon rviz_hydra_pipelin)" pkg="rviz" type="rviz" args="-d $(find travel)/rviz/acl_jackal2_vel16_hydra_pipeline.rviz" />
 </launch>

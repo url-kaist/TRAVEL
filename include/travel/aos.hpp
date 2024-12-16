@@ -69,7 +69,8 @@ namespace travel {
             float MAX_VERT_ANGLE;
             boost::optional<int> MIN_CLUSTER_SIZE;
             boost::optional<int> MAX_CLUSTER_SIZE;
-
+       
+            int num_clusters_ = 0;
             // test
             // vector<vector<vector<std::pair<float, float>>>> point_angle_;
 
@@ -246,7 +247,7 @@ namespace travel {
 
             void labelPointcloud(boost::shared_ptr<pcl::PointCloud<T>> cloud_in,
                                 boost::shared_ptr<pcl::PointCloud<T>> cloud_out) {
-                uint cnt = 0;
+                num_clusters_ = 0;
                 uint pt_cnt = 0;
                 uint max = 2000;
                 cloud_out->points.reserve(cloud_in->points.size());
@@ -256,10 +257,10 @@ namespace travel {
                 for (size_t i = 0; i < clusters_.size(); i++) {
                     if (std::distance(clusters_[i].begin(), clusters_[i].end()) > 0) {
                         valid_indices.push_back(i);
-                        cnt++;
+                        num_clusters_++;
                     }
                 }
-                std::list<uint16_t> l(cnt);
+                std::list<uint16_t> l(num_clusters_);
                 std::iota(l.begin(), l.end(), 1);
                 std::vector<std::list<uint16_t>::iterator> v(l.size());
                 std::iota(v.begin(), v.end(), l.begin());
@@ -280,7 +281,9 @@ namespace travel {
                             assert(cloud_in->points[p->idx].y == p->y);
                             assert(cloud_in->points[p->idx].z == p->z);
                             T point = cloud_in->points[p->idx];
-                            point.intensity = label;
+                            point.intensity = static_cast<float>(cloud_in->points[p->idx].intensity);
+                            point.label = static_cast<uint16_t>(cloud_in->points[p->idx].label);
+                            point.id = static_cast<uint16_t>(label);
                             cloud_out->points.emplace_back(point);
                             pt_cnt++;
                         } else {
@@ -289,7 +292,7 @@ namespace travel {
                     }
                 }
                 // assert(cloud_in->points.size() == cloud_out->points.size());
-                printf("# of cluster: %d, point: %d\n", cnt, pt_cnt);
+                printf("# of cluster: %d, point: %d\n", num_clusters_, pt_cnt);
             }
             
             void horizontalUpdate(int channel) {
@@ -683,6 +686,10 @@ namespace travel {
                 if (col_idx >= HORZ_SCAN)
                     col_idx -= HORZ_SCAN;
                 return col_idx;
+            }
+
+            int getNumClusters() {
+                return num_clusters_;
             }
 
             void mergeClusters(uint16_t cur_label, uint16_t target_label) {
