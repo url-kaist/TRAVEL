@@ -17,7 +17,7 @@ Object segmentation, Traversable ground segmentation, Graph search, Autonomous n
 
 ## Repository Layout
 
-The repo is split so the algorithm core can be consumed without ROS.
+The repo is split so the algorithm core can be consumed without ROS or even without C++ tooling.
 
 ```
 TRAVEL/
@@ -26,6 +26,9 @@ TRAVEL/
 │   │   ├── core/travel/{tgs,aos,point_types,save_labels,kitti_loader,logging}.hpp
 │   │   └── core/travel/3rdparty/nanoflann*.hpp
 │   └── examples/      # Standalone CLI demo (run_travel_kitti). No ROS.
+├── python/            # pip-installable bindings (travel-seg).
+│   ├── pyproject.toml, CMakeLists.txt
+│   └── travel_seg/    # numpy-friendly Python API on top of the C++ core
 └── ros/               # ROS1 (catkin) wrapper that consumes cpp/travel/.
     └── src/main.cpp, msg/, launch/, config/, rviz/
 ```
@@ -35,6 +38,28 @@ TRAVEL/
 - ROS wrapper (`ros/`): Ubuntu 18.04 / ROS Melodic (original target). Newer combos (Ubuntu 20.04 / Noetic) should work but are not regression-tested.
 
 ## How to Build
+
+### Python (pip)
+
+```
+# Ubuntu deps:  sudo apt install build-essential cmake libeigen3-dev libpcl-dev libboost-system-dev libboost-filesystem-dev
+# macOS deps:   brew install cmake eigen boost pcl
+
+git clone https://github.com/url-kaist/TRAVEL.git
+cd TRAVEL
+pip install -e python/   # editable; rebuilds C++ on next import if changed
+```
+
+Quick start:
+
+```python
+import numpy as np, travel_seg as ts
+points = np.fromfile("0000.bin", dtype=np.float32).reshape(-1, 4)
+result = ts.segment(points)            # SegmentResult
+ground_pts = points[result.ground_mask]
+```
+
+See `python/README.md` for the full API.
 
 ### Core library + standalone example (no ROS)
 
@@ -83,8 +108,8 @@ roslaunch travel travel_run.launch
 5. Use `ObjectCluster::segmentObjects()` for above-ground object segmentation.
 6. Logging in the core is routed through `TRAVEL_LOG_*` macros (in `travel/logging.hpp`). Define `TRAVEL_USE_ROS_LOGGING` at compile time to dispatch to ROS_INFO/WARN/ERROR; otherwise output goes to stdout/stderr.
 
-* If you want to use TRAVEL with python code, then visit here (https://github.com/darrenjkt/TRAVEL). Thank you Darren :)
-* `pip install travel-seg` Python bindings are planned (Phase 2).
+* `pip install travel-seg` is now supported via `python/`. See `python/README.md`.
+* For the previous third-party Python wrapper, see https://github.com/darrenjkt/TRAVEL. Thank you Darren :)
 
 ## Citation
 If our research has been helpful, please cite the below papers:
