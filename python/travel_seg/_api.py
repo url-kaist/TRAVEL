@@ -128,6 +128,10 @@ class ObjectCluster:
             min_cluster_size=c.min_cluster_size,
             max_cluster_size=c.max_cluster_size,
         )
+        if c.seed is None:
+            self._impl.clear_seed()
+        else:
+            self._impl.set_seed(int(c.seed))
 
     @property
     def config(self) -> ObjectClusterConfig:

@@ -71,12 +71,32 @@ namespace travel {
             boost::optional<int> MAX_CLUSTER_SIZE;
        
             int num_clusters_ = 0;
-            // test
-            // vector<vector<vector<std::pair<float, float>>>> point_angle_;
+
+            // Optional fixed seed for the cluster-id shuffle in
+            // labelPointcloud. By default the shuffle uses std::random_device,
+            // so labels are not bit-reproducible across runs (the underlying
+            // partition is). Tests / regression harnesses can call setSeed()
+            // to pin the shuffle and get bit-identical output.
+            bool use_fixed_seed_ = false;
+            uint32_t rng_seed_ = 0;
 
         public:
             ObjectCluster() {
                 empty_ = {};
+            }
+
+            // Pin the random seed used to shuffle cluster ids. After calling
+            // this, every segmentObjects() call produces bit-identical labels
+            // for identical input. Pass a different seed each frame if the
+            // mild visual benefit of label rotation is desired.
+            void setSeed(uint32_t seed) {
+                use_fixed_seed_ = true;
+                rng_seed_ = seed;
+            }
+
+            // Restore default behaviour: shuffle ids with std::random_device.
+            void clearSeed() {
+                use_fixed_seed_ = false;
             }
 
             ~ObjectCluster() {}
@@ -264,7 +284,11 @@ namespace travel {
                 std::iota(l.begin(), l.end(), 1);
                 std::vector<std::list<uint16_t>::iterator> v(l.size());
                 std::iota(v.begin(), v.end(), l.begin());
-                std::shuffle(v.begin(), v.end(), std::mt19937{std::random_device{}()}); 
+                if (use_fixed_seed_) {
+                    std::shuffle(v.begin(), v.end(), std::mt19937{rng_seed_});
+                } else {
+                    std::shuffle(v.begin(), v.end(), std::mt19937{std::random_device{}()});
+                }
 
                 for (size_t i = 0; i < valid_indices.size(); i++) {
                     uint16_t label = *v[i];

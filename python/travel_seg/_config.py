@@ -7,6 +7,7 @@ sensible behaviour on KITTI-style 64-channel scans out of the box.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Optional
 
 import numpy as np
 
@@ -49,6 +50,10 @@ class ObjectClusterConfig:
     downsample: int = 1
     min_cluster_size: int = 10
     max_cluster_size: int = 30000
+    # If set, pin the cluster-id shuffle so segment_objects produces
+    # bit-identical labels for identical input. Default (None) keeps the
+    # original std::random_device behaviour.
+    seed: Optional[int] = None
 
 
 @dataclass

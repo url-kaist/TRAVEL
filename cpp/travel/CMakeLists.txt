@@ -3,6 +3,7 @@ project(travel VERSION 1.0.0 LANGUAGES CXX)
 
 option(USE_CCACHE "Build using Ccache if found on the path" ON)
 option(TRAVEL_BUILD_EXAMPLES "Build standalone examples in cpp/examples" OFF)
+option(TRAVEL_BUILD_TESTS "Build regression / unit tests in cpp/tests" OFF)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Setting build type to 'Release' as none was specified.")
@@ -59,6 +60,11 @@ target_compile_definitions(${TARGET_NAME} INTERFACE ${PCL_DEFINITIONS})
 # --- Examples (opt-in) -----------------------------------------------------
 if (TRAVEL_BUILD_EXAMPLES)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../examples ${CMAKE_CURRENT_BINARY_DIR}/examples)
+endif()
+
+# --- Tests (opt-in) --------------------------------------------------------
+if (TRAVEL_BUILD_TESTS)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../tests ${CMAKE_CURRENT_BINARY_DIR}/tests)
 endif()
 
 # --- Install ---------------------------------------------------------------

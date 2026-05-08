@@ -223,6 +223,15 @@ PYBIND11_MODULE(_travel_seg, m) {
              "horz_extension_size"_a, "horz_skip_size"_a,
              "downsample"_a,
              "min_cluster_size"_a, "max_cluster_size"_a)
+        .def("set_seed",
+             &travel::ObjectCluster<PointXYZILID>::setSeed,
+             "seed"_a,
+             "Pin the cluster-id shuffle seed so segment_objects produces "
+             "bit-identical output for identical input.")
+        .def("clear_seed",
+             &travel::ObjectCluster<PointXYZILID>::clearSeed,
+             "Restore default behaviour: shuffle cluster ids with "
+             "std::random_device on every call.")
         .def("segment_objects",
              [](travel::ObjectCluster<PointXYZILID>& self,
                 py::array_t<float, py::array::c_style | py::array::forcecast> arr) {
