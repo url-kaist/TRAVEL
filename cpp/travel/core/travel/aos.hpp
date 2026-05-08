@@ -15,7 +15,7 @@
 #include <forward_list>
 #include <boost/optional.hpp>
 
-#include <ros/ros.h>
+#include "travel/logging.hpp"
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/common/io.h>
@@ -90,48 +90,48 @@ namespace travel {
                             boost::optional<int> _max_cluster_size=boost::none) {
                             
                 std::cout<<""<<std::endl;
-                ROS_WARN("Set ObjectSeg Parameters");
+                TRAVEL_LOG_WARN("Set ObjectSeg Parameters");
 
                 VERT_SCAN = _vert_scan;
-                ROS_WARN("vert scan: %d", VERT_SCAN);
+                TRAVEL_LOG_WARN("vert scan: %d", VERT_SCAN);
                 
                 HORZ_SCAN = _horz_scan;
-                ROS_WARN("horz scan: %d", HORZ_SCAN);
+                TRAVEL_LOG_WARN("horz scan: %d", HORZ_SCAN);
                 
                 MIN_RANGE = _min_range;
-                ROS_WARN("min range: %f", MIN_RANGE);
+                TRAVEL_LOG_WARN("min range: %f", MIN_RANGE);
 
                 MAX_RANGE = _max_range;
-                ROS_WARN("max range: %f", MAX_RANGE);
+                TRAVEL_LOG_WARN("max range: %f", MAX_RANGE);
                 
                 HORZ_MERGE_THRES = _horz_merge_thres;
-                ROS_WARN("horz merge thres: %f", HORZ_MERGE_THRES);
+                TRAVEL_LOG_WARN("horz merge thres: %f", HORZ_MERGE_THRES);
                 
                 VERT_MERGE_THRES = _vert_merge_thres;
-                ROS_WARN("vert merge thres: %f", VERT_MERGE_THRES);
+                TRAVEL_LOG_WARN("vert merge thres: %f", VERT_MERGE_THRES);
 
                 VERT_SCAN_SIZE = _vert_scan_size;
-                ROS_WARN("vert scan size: %d", VERT_SCAN_SIZE);
+                TRAVEL_LOG_WARN("vert scan size: %d", VERT_SCAN_SIZE);
                 
                 HORZ_SKIP_SIZE = _horz_skip_size;
-                ROS_WARN("horz skip size: %d", HORZ_SKIP_SIZE);
+                TRAVEL_LOG_WARN("horz skip size: %d", HORZ_SKIP_SIZE);
                 
                 HORZ_SCAN_SIZE = _horz_scan_size;
-                ROS_WARN("horz scan size: %d", HORZ_SCAN_SIZE);
+                TRAVEL_LOG_WARN("horz scan size: %d", HORZ_SCAN_SIZE);
 
                 HORZ_EXTENSION_SIZE = _horz_extension_size;
-                ROS_WARN("horz extension size: %d", HORZ_EXTENSION_SIZE);
+                TRAVEL_LOG_WARN("horz extension size: %d", HORZ_EXTENSION_SIZE);
 
                 DOWNSAMPLE = _downsample;
-                ROS_WARN("downsample: %d", DOWNSAMPLE);
+                TRAVEL_LOG_WARN("downsample: %d", DOWNSAMPLE);
                 
                 MAX_VERT_ANGLE = _max_vert_angle; 
                 MIN_VERT_ANGLE = _min_vert_angle;
-                ROS_WARN("Max vertical angle : %f", MAX_VERT_ANGLE);
-                ROS_WARN("Min vertical angle : %f", MIN_VERT_ANGLE);
+                TRAVEL_LOG_WARN("Max vertical angle : %f", MAX_VERT_ANGLE);
+                TRAVEL_LOG_WARN("Min vertical angle : %f", MIN_VERT_ANGLE);
 
                 float resolution = (float) (MAX_VERT_ANGLE - MIN_VERT_ANGLE) / (float)(VERT_SCAN-1);
-                ROS_WARN("Vertical resolution: %f", resolution);
+                TRAVEL_LOG_WARN("Vertical resolution: %f", resolution);
 
 
                 for(int i = 0; i < _vert_scan; i++)
@@ -149,8 +149,8 @@ namespace travel {
                     MAX_CLUSTER_SIZE = _max_cluster_size;
             }
 
-            void segmentObjects(boost::shared_ptr<pcl::PointCloud<T>> cloud_in, 
-                            boost::shared_ptr<pcl::PointCloud<T>> cloud_out, 
+            void segmentObjects(boost::shared_ptr<pcl::PointCloud<T>> cloud_in,
+                            boost::shared_ptr<pcl::PointCloud<T>> cloud_out,
                             vector<float> *vert_angles=nullptr) {
                 // 0. reset
                 max_label_ = 1;
@@ -287,7 +287,7 @@ namespace travel {
                             cloud_out->points.emplace_back(point);
                             pt_cnt++;
                         } else {
-                            ROS_ERROR("point invalid");
+                            TRAVEL_LOG_ERROR("point invalid");
                         }
                     }
                 }
