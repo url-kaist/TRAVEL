@@ -7,6 +7,16 @@ cmake-build-debug*
 build/
 build_*/
 
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+wheels/
+.venv/
+.python-version
+
 # Created by https://www.gitignore.io/api/c++,code,cmake,eclipse
 # Edit at https://www.gitignore.io/?templates=c++,code,cmake,eclipse
 

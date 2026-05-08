@@ -1,0 +1,49 @@
+[build-system]
+requires = ["scikit_build_core", "pybind11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "travel-seg"
+version = "0.1.0"
+requires-python = ">=3.8"
+description = "Python bindings for TRAVEL: traversable ground and above-ground object segmentation for 3D LiDAR scans"
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+authors = [
+    { name = "Hyungtae Lim", email = "shapelim@mit.edu" },
+    { name = "Minho Oh", email = "dhalsgh03@gmail.com" },
+    { name = "Euigon Jung", email = "egjung94@gmail.com" },
+]
+classifiers = [
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Topic :: Scientific/Engineering",
+    "Intended Audience :: Science/Research",
+]
+keywords = ["lidar", "point-cloud", "segmentation", "ground-segmentation", "robotics"]
+dependencies = [
+    "numpy",
+]
+
+[project.urls]
+Homepage = "https://github.com/url-kaist/TRAVEL"
+Repository = "https://github.com/url-kaist/TRAVEL"
+"Bug Tracker" = "https://github.com/url-kaist/TRAVEL/issues"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.scikit-build]
+wheel.packages = ["travel_seg"]
+# `python/CMakeLists.txt` uses `FetchContent_Declare(... SOURCE_SUBDIR ...)` in
+# the out-of-tree (sdist / PyPI) path, which requires CMake 3.18+. Ubuntu 20.04
+# ships CMake 3.16, so let scikit-build-core provision a newer cmake from the
+# `cmake` PyPI wheel when the system one is too old.
+cmake.version = ">=3.18,<4"
