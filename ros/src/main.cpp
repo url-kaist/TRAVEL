@@ -2,8 +2,17 @@
 
 #include "travel/aos.hpp"
 #include "travel/tgs.hpp"
+#include "travel/point_types.hpp"
+#include "travel/save_labels.hpp"
+
+// Generated from msg/node.msg by catkin (kept even though main.cpp does not
+// publish/subscribe travel::Node, so downstream nodes can still build).
 #include "travel/node.h"
-#include "utils/utils.hpp"
+
+#include <ros/ros.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <std_msgs/Header.h>
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/point_types.h>

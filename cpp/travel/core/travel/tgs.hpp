@@ -14,26 +14,17 @@
 #include <math.h>
 #include <fstream>
 #include <memory>
+#include <queue>
 #include <signal.h>
 
-#include <ros/ros.h>
-#include <pcl_ros/point_cloud.h>
-#include <pcl_conversions/pcl_conversions.h>
 #include <pcl/filters/filter.h>
 #include <pcl/common/centroid.h>
 #include <pcl/filters/voxel_grid.h>
-#include <tf/transform_listener.h>
-#include <tf/tf.h>
-#include <tf/transform_broadcaster.h>
+#include <pcl/PCLHeader.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
-#include <jsk_recognition_msgs/PolygonArray.h>
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/MarkerArray.h>
-
-#include <sensor_msgs/PointCloud2.h>
-#include <nav_msgs/Odometry.h>
-#include <nav_msgs/Path.h>
-#include <opencv2/opencv.hpp>
+#include "travel/logging.hpp"
 
 namespace travel {
 
@@ -104,20 +95,7 @@ namespace travel {
     template <typename PointType>
     class TravelGroundSeg{
     private:
-        // ros::NodeHandle node_handle_;
         pcl::PCLHeader cloud_header_;
-        std_msgs::Header msg_header_;
-
-        // ros::Publisher pub_trigrid_nodes_;
-        // ros::Publisher pub_trigrid_edges_;
-        // ros::Publisher pub_trigrid_corners_;
-        // ros::Publisher pub_tgseg_ground_cloud;
-        // ros::Publisher pub_tgseg_nonground_cloud;
-        // ros::Publisher pub_tgseg_outliers_cloud;
-        
-        jsk_recognition_msgs::PolygonArray viz_trigrid_polygons_;
-        visualization_msgs::Marker viz_trigrid_edges_;
-        pcl::PointCloud<pcl::PointXYZ> viz_trigrid_corners_;
 
         bool REFINE_MODE_;
         bool VIZ_MDOE_;
@@ -161,19 +139,9 @@ namespace travel {
         pcl::PointCloud<PointType> ptCloud_nodewise_obstacle_;
 
     public:
-        // TravelGroundSeg(ros::NodeHandle* nh):node_handle_(*nh){
-        TravelGroundSeg(){
-            // Init ROS related
-            ROS_INFO("Inititalizing Traversable Ground Segmentation...");
-
-            // pub_trigrid_nodes_  = node_handle_.advertise<jsk_recognition_msgs::PolygonArray>("/travelgseg/nodes", 1);
-            // pub_trigrid_edges_  = node_handle_.advertise<visualization_msgs::Marker>("/travelgseg/edges", 1);
-            // pub_trigrid_corners_= node_handle_.advertise<pcl::PointCloud<pcl::PointXYZ>>("/travelgseg/corners", 1);
-            
-            // pub_tgseg_ground_cloud    = node_handle_.advertise<sensor_msgs::PointCloud2>("/travelgseg/ground_cloud", 1);
-            // pub_tgseg_nonground_cloud = node_handle_.advertise<sensor_msgs::PointCloud2>("/travelgseg/nonground_cloud", 1);
-            // pub_tgseg_outliers_cloud   = node_handle_.advertise<sensor_msgs::PointCloud2>("/travelgseg/outlier_cloud", 1);
-        };
+        TravelGroundSeg() {
+            TRAVEL_LOG_INFO("Initializing Traversable Ground Segmentation...");
+        }
 
         void setParams(const double max_range, const double min_range, const double resolution, 
                             const int num_iter, const int num_lpr, const int num_min_pts, const double th_seeds, 
@@ -181,54 +149,54 @@ namespace travel {
                             const double th_lcc_normal_similiarity, const double th_lcc_planar_model_dist, const double th_obstacle,
                             const bool refine_mode, const bool visualization) {
             std::cout<<""<<std::endl;
-            ROS_INFO("Set TRAVEL_GSEG Parameters");
+            TRAVEL_LOG_INFO("Set TRAVEL_GSEG Parameters");
 
             MAX_RANGE_ = max_range;
-            ROS_INFO("Max Range: %f", MAX_RANGE_);
+            TRAVEL_LOG_INFO("Max Range: %f", MAX_RANGE_);
 
             MIN_RANGE_ = min_range;
-            ROS_INFO("Min Range: %f", MIN_RANGE_);
+            TRAVEL_LOG_INFO("Min Range: %f", MIN_RANGE_);
             
             TGF_RESOLUTION_ = resolution;
-            ROS_INFO("Resolution: %f", TGF_RESOLUTION_);
+            TRAVEL_LOG_INFO("Resolution: %f", TGF_RESOLUTION_);
             
             NUM_ITER_ = num_iter;
-            ROS_INFO("Num of Iteration: %d", NUM_ITER_);
+            TRAVEL_LOG_INFO("Num of Iteration: %d", NUM_ITER_);
             
             NUM_LRP_ = num_lpr;
-            ROS_INFO("Num of LPR: %d", NUM_LRP_);
+            TRAVEL_LOG_INFO("Num of LPR: %d", NUM_LRP_);
             
             NUM_MIN_POINTS_ = num_min_pts;
-            ROS_INFO("Num of min. points: %d", NUM_MIN_POINTS_);
+            TRAVEL_LOG_INFO("Num of min. points: %d", NUM_MIN_POINTS_);
             
             TH_SEEDS_ = th_seeds;
-            ROS_INFO("Seeds Threshold: %f", TH_SEEDS_);
+            TRAVEL_LOG_INFO("Seeds Threshold: %f", TH_SEEDS_);
             
             TH_DIST_ = th_dist;
-            ROS_INFO("Distance Threshold: %f", TH_DIST_);
+            TRAVEL_LOG_INFO("Distance Threshold: %f", TH_DIST_);
             
             TH_OUTLIER_ = th_outlier;
-            ROS_INFO("Outlier Threshold: %f", TH_OUTLIER_);
+            TRAVEL_LOG_INFO("Outlier Threshold: %f", TH_OUTLIER_);
 
             TH_NORMAL_ = th_normal;
-            ROS_INFO("Normal Threshold: %f", TH_NORMAL_);
+            TRAVEL_LOG_INFO("Normal Threshold: %f", TH_NORMAL_);
 
             TH_WEIGHT_ = th_weight;
-            ROS_INFO("Node Weight Threshold: %f", TH_WEIGHT_);
+            TRAVEL_LOG_INFO("Node Weight Threshold: %f", TH_WEIGHT_);
 
             TH_LCC_NORMAL_SIMILARITY_ = th_lcc_normal_similiarity;
-            ROS_INFO("LCC Normal Similarity: %f", TH_LCC_NORMAL_SIMILARITY_);
+            TRAVEL_LOG_INFO("LCC Normal Similarity: %f", TH_LCC_NORMAL_SIMILARITY_);
 
             TH_LCC_PLANAR_MODEL_DIST_ = th_lcc_planar_model_dist;
-            ROS_INFO("LCC Plane Distance   : %f", TH_LCC_PLANAR_MODEL_DIST_);
+            TRAVEL_LOG_INFO("LCC Plane Distance   : %f", TH_LCC_PLANAR_MODEL_DIST_);
 
             TH_OBSTACLE_HEIGHT_ = th_obstacle;
-            ROS_INFO("Obstacle Max Height  : %f", TH_OBSTACLE_HEIGHT_);
+            TRAVEL_LOG_INFO("Obstacle Max Height  : %f", TH_OBSTACLE_HEIGHT_);
             
             REFINE_MODE_ = refine_mode;
             VIZ_MDOE_ = visualization;
 
-            ROS_INFO("Set TGF Parameters");
+            TRAVEL_LOG_INFO("Set TGF Parameters");
             initTriGridField(trigrid_field_);
             initTriGridCorners(trigrid_corners_, trigrid_centers_);
 
@@ -250,24 +218,10 @@ namespace travel {
             ptCloud_nodewise_obstacle_.clear();
             ptCloud_nodewise_obstacle_.reserve(NODEWISE_PTCLOUDSIZE);
 
-            if (VIZ_MDOE_) {
-                viz_trigrid_polygons_.polygons.clear();
-                viz_trigrid_polygons_.polygons.reserve(rows_ * cols_);
-                viz_trigrid_polygons_.likelihood.clear();
-                viz_trigrid_polygons_.likelihood.reserve(rows_ * cols_);
-                
-
-                viz_trigrid_edges_.ns = "trigrid_edges";
-                viz_trigrid_edges_.action = visualization_msgs::Marker::ADD;
-                viz_trigrid_edges_.type = visualization_msgs::Marker::LINE_LIST;
-                viz_trigrid_edges_.pose.orientation.w = 1.0;
-                viz_trigrid_edges_.scale.x = 0.5;
-                viz_trigrid_edges_.id = 0;
-
-                viz_trigrid_corners_.clear();
-                viz_trigrid_corners_.reserve(rows_*cols_ + (rows_+ 1)*(cols_+1));
-            }
-        };
+            // VIZ_MDOE_ still gates the population of trigrid_edges_ during
+            // the BFS so a downstream wrapper (ROS or otherwise) can render
+            // the graph via getTriGridField() / getTriGridEdges().
+        }
 
         void estimateGround(const pcl::PointCloud<PointType>& cloud_in,
                             pcl::PointCloud<PointType>& cloudGround_out,
@@ -277,8 +231,6 @@ namespace travel {
             // 0. Init
             static time_t start, end;
             cloud_header_ = cloud_in.header;
-            pcl_conversions::fromPCL(cloud_header_, msg_header_);
-            // ROS_INFO("TriGrid Field-based Traversable Ground Segmentation...");
             start = clock();
             ptCloud_tgfwise_outliers_.clear();
             ptCloud_tgfwise_outliers_.reserve(cloud_in.size());
@@ -310,15 +262,20 @@ namespace travel {
 
             end = clock();
             time_taken = (double)(end - start) / CLOCKS_PER_SEC;
-
-            // 6. Publish Results and Visualization
-            if (VIZ_MDOE_){
-                // publishTriGridFieldGraph();
-                // publishTriGridCorners();
-                // publishPointClouds();
-            }
             return;
         };
+
+        // Hooks for downstream visualization (e.g. the ROS wrapper) to read
+        // the underlying graph state without coupling the core to ROS types.
+        const TriGridField<PointType>& getTriGridField() const { return trigrid_field_; }
+        const std::vector<TriGridEdge>& getTriGridEdges() const { return trigrid_edges_; }
+        const std::vector<std::vector<TriGridCorner>>& getTriGridCorners() const { return trigrid_corners_; }
+        const std::vector<std::vector<TriGridCorner>>& getTriGridCenters() const { return trigrid_centers_; }
+        double getTGFResolution() const { return TGF_RESOLUTION_; }
+        double getTGFMinX() const { return tgf_min_x; }
+        double getTGFMinY() const { return tgf_min_y; }
+        int getTGFRows() const { return rows_; }
+        int getTGFCols() const { return cols_; }
 
         TriGridIdx getTriGridIdx(const float& x_in, const float& y_in){
             TriGridIdx tgf_idx;
@@ -375,7 +332,7 @@ namespace travel {
         double rows_, cols_;
 
         void initTriGridField(TriGridField<PointType>& tgf_in){
-            // ROS_INFO("Initializing TriGridField...");
+            // TRAVEL_LOG_INFO("Initializing TriGridField...");
 
             tgf_max_x = MAX_RANGE_;
             tgf_max_y = MAX_RANGE_;
@@ -427,7 +384,7 @@ namespace travel {
 
         void initTriGridCorners(std::vector<std::vector<TriGridCorner>>& trigrid_corners_in,
                                 std::vector<std::vector<TriGridCorner>>& trigrid_centers_in){
-            // ROS_INFO("Initializing TriGridCorners...");
+            // TRAVEL_LOG_INFO("Initializing TriGridCorners...");
 
             // Set TriGridCorner
             empty_trigrid_corner_.x = empty_trigrid_corner_.y = 0.0;
@@ -464,7 +421,7 @@ namespace travel {
         };
 
         void clearTriGridField(TriGridField<PointType> &tgf_in){
-            // ROS_INFO("Clearing TriGridField...");
+            // TRAVEL_LOG_INFO("Clearing TriGridField...");
 
             for (int r_i = 0; r_i < rows_; r_i++){
             for (int c_i = 0; c_i < cols_; c_i++){
@@ -476,7 +433,7 @@ namespace travel {
 
         void clearTriGridCorners(std::vector<std::vector<TriGridCorner>>& trigrid_corners_in,
                                 std::vector<std::vector<TriGridCorner>>& trigrid_centers_in){
-            // ROS_INFO("Clearing TriGridCorners...");
+            // TRAVEL_LOG_INFO("Clearing TriGridCorners...");
 
             TriGridCorner tmp_corner = empty_trigrid_corner_;
             TriGridCorner tmp_center = empty_trigrid_center_;
@@ -509,7 +466,7 @@ namespace travel {
         }
 
         void embedCloudToTriGridField(const pcl::PointCloud<PointType>& cloud_in, TriGridField<PointType>& tgf_out) {
-            // ROS_INFO("Embedding PointCloud to TriGridField...");
+            // TRAVEL_LOG_INFO("Embedding PointCloud to TriGridField...");
 
             for (auto const &pt: cloud_in.points){
                 if (filterPoint(pt)){
@@ -666,7 +623,7 @@ namespace travel {
         }
 
         void modelNodeWiseTerrain(TriGridField<PointType>& tgf_in) {
-            // ROS_INFO("Node-wise Terrain Modeling...");
+            // TRAVEL_LOG_INFO("Node-wise Terrain Modeling...");
 
             for (int r_i = 0; r_i < rows_; r_i++){
             for (int c_i = 0; c_i < cols_; c_i++){
@@ -689,7 +646,7 @@ namespace travel {
 
         void findDominantNode(const TriGridField<PointType>& tgf_in, TriGridIdx& node_idx_out) {
             // Find the dominant node
-            ROS_INFO("Find the dominant node...");
+            TRAVEL_LOG_INFO("Find the dominant node...");
             TriGridIdx max_tri_idx;
             TriGridIdx ego_idx;
             ego_idx.row = (int)((0-tgf_min_x)/TGF_RESOLUTION_);
@@ -1140,7 +1097,7 @@ namespace travel {
         Eigen::Vector3f convertCornerToEigen(TriGridCorner &corner_in) {
             Eigen::Vector3f corner_out;
             if (corner_in.zs.size() != corner_in.weights.size()){
-                ROS_WARN("ERROR in corners");
+                TRAVEL_LOG_WARN("ERROR in corners");
             }
             corner_out[0] = corner_in.x;
             corner_out[1] = corner_in.y;
@@ -1203,7 +1160,7 @@ namespace travel {
                     refined_center = convertCornerToEigen(trigrid_centers_in[r_i][c_i]);
                     break;
                 default:
-                    ROS_ERROR("WRONG tri-grid indexing");
+                    TRAVEL_LOG_ERROR("WRONG tri-grid indexing");
                     break;
                 }
 
@@ -1392,253 +1349,6 @@ namespace travel {
             return;
         };
 
-        // functions for visualization
-
-        geometry_msgs::PolygonStamped setPlanarModel (const TriGridNode<PointType>& node_in, const TriGridIdx& node_idx) {
-            geometry_msgs::PolygonStamped polygon_out;
-            polygon_out.header = msg_header_;
-            geometry_msgs::Point32 corner_0, corner_1, corner_2;
-            int r_i = node_idx.row;
-            int c_i = node_idx.col;
-            int s_i = node_idx.tri;
-            if (node_in.node_type == GROUND){
-                switch (s_i){
-                    case 0:
-                        //topx lowy & topx topy
-                        corner_1.x = (r_i+1)*TGF_RESOLUTION_+tgf_min_x; corner_1.y = (c_i)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_1.z = (-node_in.normal(0,0)*corner_1.x - node_in.normal(1,0)*corner_1.y-node_in.d)/node_in.normal(2,0);
-
-                        corner_2.x = (r_i+1)*TGF_RESOLUTION_+tgf_min_x; corner_2.y = (c_i+1)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_2.z = (-node_in.normal(0,0)*corner_2.x - node_in.normal(1,0)*corner_2.y-node_in.d)/node_in.normal(2,0);
-
-                        corner_0.x = (r_i+0.5)*TGF_RESOLUTION_+tgf_min_x; corner_0.y = (c_i+0.5)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_0.z = (-node_in.normal(0,0)*corner_0.x - node_in.normal(1,0)*corner_0.y-node_in.d)/node_in.normal(2,0);
-                        break;
-                    case 1:
-                        //topx topy & lowx topy
-                        corner_1.x = (r_i+1)*TGF_RESOLUTION_+tgf_min_x; corner_1.y = (c_i+1)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_1.z = (-node_in.normal(0,0)*corner_1.x - node_in.normal(1,0)*corner_1.y-node_in.d)/node_in.normal(2,0);
-
-                        corner_2.x = (r_i)*TGF_RESOLUTION_+tgf_min_x; corner_2.y = (c_i+1)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_2.z = (-node_in.normal(0,0)*corner_2.x - node_in.normal(1,0)*corner_2.y-node_in.d)/node_in.normal(2,0);
-
-                        corner_0.x = (r_i+0.5)*TGF_RESOLUTION_+tgf_min_x; corner_0.y = (c_i+0.5)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_0.z = (-node_in.normal(0,0)*corner_0.x - node_in.normal(1,0)*corner_0.y-node_in.d)/node_in.normal(2,0);
-                        break;
-                    case 2:
-                        //lowx topy & lowx lowy
-                        corner_1.x = (r_i)*TGF_RESOLUTION_+tgf_min_x; corner_1.y = (c_i+1)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_1.z = (-node_in.normal(0,0)*corner_1.x - node_in.normal(1,0)*corner_1.y-node_in.d)/node_in.normal(2,0);
-
-                        corner_2.x = (r_i)*TGF_RESOLUTION_+tgf_min_x; corner_2.y = c_i*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_2.z = (-node_in.normal(0,0)*corner_2.x - node_in.normal(1,0)*corner_2.y-node_in.d)/node_in.normal(2,0);
-
-                        corner_0.x = (r_i+0.5)*TGF_RESOLUTION_+tgf_min_x; corner_0.y = (c_i+0.5)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_0.z = (-node_in.normal(0,0)*corner_0.x - node_in.normal(1,0)*corner_0.y-node_in.d)/node_in.normal(2,0);
-                        break;
-                    case 3:
-                        //lowx lowy & topx lowy 
-                        corner_1.x = (r_i)*TGF_RESOLUTION_+tgf_min_x; corner_1.y = (c_i)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_1.z = (-node_in.normal(0,0)*corner_1.x - node_in.normal(1,0)*corner_1.y-node_in.d)/node_in.normal(2,0);
-
-                        corner_2.x = (r_i+1)*TGF_RESOLUTION_+tgf_min_x; corner_2.y = (c_i)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_2.z = (-node_in.normal(0,0)*corner_2.x - node_in.normal(1,0)*corner_2.y-node_in.d)/node_in.normal(2,0);
-
-                        corner_0.x = (r_i+0.5)*TGF_RESOLUTION_+tgf_min_x; corner_0.y = (c_i+0.5)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_0.z = (-node_in.normal(0,0)*corner_0.x - node_in.normal(1,0)*corner_0.y-node_in.d)/node_in.normal(2,0);
-                        break;
-                    default:
-                        break;
-                }        
-            } else {
-                switch (s_i){
-                    case 0:
-                        //topx lowy & topx topy
-                        corner_1.x = (r_i+1)*TGF_RESOLUTION_+tgf_min_x; corner_1.y = (c_i)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_1.z = -2.0;
-
-                        corner_2.x = (r_i+1)*TGF_RESOLUTION_+tgf_min_x; corner_2.y = (c_i+1)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_2.z = -2.0;
-
-                        corner_0.x = (r_i+0.5)*TGF_RESOLUTION_+tgf_min_x; corner_0.y = (c_i+0.5)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_0.z = -2.0;
-                        break;
-                    case 1:
-                        //topx topy & lowx topy
-                        corner_1.x = (r_i+1)*TGF_RESOLUTION_+tgf_min_x; corner_1.y = (c_i+1)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_1.z = -2.0;
-
-                        corner_2.x = (r_i)*TGF_RESOLUTION_+tgf_min_x; corner_2.y = (c_i+1)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_2.z = -2.0;
-
-                        corner_0.x = (r_i+0.5)*TGF_RESOLUTION_+tgf_min_x; corner_0.y = (c_i+0.5)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_0.z = -2.0;
-                        break;
-                    case 2:
-                        //lowx topy & lowx lowy
-                        corner_1.x = (r_i)*TGF_RESOLUTION_+tgf_min_x; corner_1.y = (c_i+1)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_1.z = -2.0;
-
-                        corner_2.x = (r_i)*TGF_RESOLUTION_+tgf_min_x; corner_2.y = c_i*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_2.z = -2.0;
-
-                        corner_0.x = (r_i+0.5)*TGF_RESOLUTION_+tgf_min_x; corner_0.y = (c_i+0.5)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_0.z = -2.0;
-                        break;
-                    case 3:
-                        //lowx lowy & topx lowy 
-                        corner_1.x = (r_i)*TGF_RESOLUTION_+tgf_min_x; corner_1.y = (c_i)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_1.z = -2.0;
-
-                        corner_2.x = (r_i+1)*TGF_RESOLUTION_+tgf_min_x; corner_2.y = (c_i)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_2.z = -2.0;
-
-                        corner_0.x = (r_i+0.5)*TGF_RESOLUTION_+tgf_min_x; corner_0.y = (c_i+0.5)*TGF_RESOLUTION_+tgf_min_y; 
-                        corner_0.z = -2.0;
-                        break;
-                    default:
-                        std::cout << "the error in sub-idx" << std::endl;
-                        break;
-                }
-            }
-
-            polygon_out.polygon.points.reserve(3); 
-            polygon_out.polygon.points.push_back(corner_0);
-            polygon_out.polygon.points.push_back(corner_2);
-            polygon_out.polygon.points.push_back(corner_1);
-            return polygon_out;
-        }
-
-        void publishTriGridFieldGraph() {
-            viz_trigrid_polygons_.header = msg_header_;
-            viz_trigrid_polygons_.polygons.clear();
-            viz_trigrid_polygons_.likelihood.clear();
-
-            // visualize the graph: nodes
-            for (int r_i = 0; r_i < rows_; r_i++){
-            for (int c_i = 0; c_i < cols_; c_i++){
-            for (int s_i = 0; s_i < (int) trigrid_field_[r_i][c_i].size(); s_i++){
-                TriGridIdx curr_idx = {r_i, c_i, s_i};
-                if (trigrid_field_[r_i][c_i][s_i].node_type == GROUND) {
-                    viz_trigrid_polygons_.polygons.push_back(setPlanarModel(trigrid_field_[r_i][c_i][s_i], curr_idx));
-                    // if (trigrid_field_[r_i][c_i][s_i].normal[2] < 0.99) {
-                    //     viz_trigrid_polygons_.likelihood.push_back(0.25);
-                    // } else {
-                        viz_trigrid_polygons_.likelihood.push_back(0.0);
-                    // }
-                    
-                } else if (trigrid_field_[r_i][c_i][s_i].node_type == NONGROUND) {
-                    // continue;
-                    viz_trigrid_polygons_.polygons.push_back(setPlanarModel(trigrid_field_[r_i][c_i][s_i], curr_idx));
-                    viz_trigrid_polygons_.likelihood.push_back(1.0);
-
-                } else if (trigrid_field_[r_i][c_i][s_i].node_type == UNKNOWN) {
-                    // continue;
-                    if (trigrid_field_[r_i][c_i][s_i].is_curr_data) {
-                        viz_trigrid_polygons_.polygons.push_back(setPlanarModel(trigrid_field_[r_i][c_i][s_i], curr_idx));
-                        viz_trigrid_polygons_.likelihood.push_back(0.5);
-                    }
-                } else {
-                    ROS_WARN("Unknown Node Type");
-                }            
-            }
-            }
-            }
-
-            //visualize the graph: edges
-            viz_trigrid_edges_.header = msg_header_;
-            viz_trigrid_edges_.points.clear();
-            geometry_msgs::Point src_pt;
-            geometry_msgs::Point tgt_pt;
-            for (int e_i = 0; e_i < (int) trigrid_edges_.size(); e_i++){
-                if (trigrid_edges_[e_i].is_traversable){
-                    viz_trigrid_edges_.color.a = 1.0;
-                    viz_trigrid_edges_.color.r = 1.0;
-                    viz_trigrid_edges_.color.g = 1.0;
-                    viz_trigrid_edges_.color.b = 0.0;
-                } else {
-                    viz_trigrid_edges_.color.a = 0.1;
-                    viz_trigrid_edges_.color.r = 1.0;
-                    viz_trigrid_edges_.color.g = 1.0;
-                    viz_trigrid_edges_.color.b = 1.0;
-                }
-
-                src_pt.x = trigrid_field_[trigrid_edges_[e_i].Pair.first.row][trigrid_edges_[e_i].Pair.first.col][trigrid_edges_[e_i].Pair.first.tri].mean_pt[0];
-                src_pt.y = trigrid_field_[trigrid_edges_[e_i].Pair.first.row][trigrid_edges_[e_i].Pair.first.col][trigrid_edges_[e_i].Pair.first.tri].mean_pt[1];
-                src_pt.z = trigrid_field_[trigrid_edges_[e_i].Pair.first.row][trigrid_edges_[e_i].Pair.first.col][trigrid_edges_[e_i].Pair.first.tri].mean_pt[2];
-
-                tgt_pt.x = trigrid_field_[trigrid_edges_[e_i].Pair.second.row][trigrid_edges_[e_i].Pair.second.col][trigrid_edges_[e_i].Pair.second.tri].mean_pt[0];
-                tgt_pt.y = trigrid_field_[trigrid_edges_[e_i].Pair.second.row][trigrid_edges_[e_i].Pair.second.col][trigrid_edges_[e_i].Pair.second.tri].mean_pt[1];
-                tgt_pt.z = trigrid_field_[trigrid_edges_[e_i].Pair.second.row][trigrid_edges_[e_i].Pair.second.col][trigrid_edges_[e_i].Pair.second.tri].mean_pt[2];
-
-                viz_trigrid_edges_.points.push_back(src_pt);
-                viz_trigrid_edges_.points.push_back(tgt_pt);
-            }
-
-            // pub_trigrid_nodes_.publish(viz_trigrid_polygons_);
-            // pub_trigrid_edges_.publish(viz_trigrid_edges_);
-            return;
-        };
-
-        // void publishTriGridCorners() {
-        //     viz_trigrid_corners_.header = cloud_header_;
-        //     viz_trigrid_corners_.points.clear();
-
-        //     TriGridCorner curr_corner;
-        //     pcl::PointXYZ corner_pt;
-        //     // for corners
-        //     for (int r_i = 0; r_i < (int) trigrid_corners_.size(); r_i++){
-        //     for (int c_i = 0; c_i < (int) trigrid_corners_[0].size(); c_i++){
-        //         curr_corner = trigrid_corners_[r_i][c_i];
-        //         if (curr_corner.zs.size() != curr_corner.weights.size()){
-        //             ROS_WARN("ERROR in corners");
-        //         }
-        //         for (int i = 0; i < (int) curr_corner.zs.size(); i++){
-        //             corner_pt.x = curr_corner.x;
-        //             corner_pt.y = curr_corner.y;
-        //             corner_pt.z = curr_corner.zs[i];
-        //             viz_trigrid_corners_.points.push_back(corner_pt);
-        //         }
-        //     }
-        //     }
-
-        //     // for centers
-        //     for (int r_i = 0; r_i < (int) trigrid_centers_.size(); r_i++){
-        //     for (int c_i = 0; c_i < (int) trigrid_centers_[0].size(); c_i++){
-        //         curr_corner = trigrid_centers_[r_i][c_i];
-        //         if (curr_corner.zs.size() != curr_corner.weights.size()){
-        //             ROS_WARN("ERROR in corners");
-        //         }
-        //         for (int i = 0; i < (int) curr_corner.zs.size(); i++){
-        //             corner_pt.x = curr_corner.x;
-        //             corner_pt.y = curr_corner.y;
-        //             corner_pt.z = curr_corner.zs[i];
-        //             viz_trigrid_corners_.points.push_back(corner_pt);
-        //         }
-        //     }
-        //     }
-
-        //     pub_trigrid_corners_.publish(viz_trigrid_corners_);
-        //     return;
-        // };
-
-        // sensor_msgs::PointCloud2 convertCloudToRosMsg(pcl::PointCloud<PointType>& cloud, std::string &frame_id) {
-        //     sensor_msgs::PointCloud2 cloud_msg;
-        //     pcl::toROSMsg(cloud, cloud_msg);
-        //     cloud_msg.header.frame_id = frame_id;
-        //     return cloud_msg;
-        // };
-
-        // void publishPointClouds(){
-        //     ptCloud_tgfwise_ground_.header = cloud_header_;
-        //     pub_tgseg_ground_cloud.publish(convertCloudToRosMsg(ptCloud_tgfwise_ground_, cloud_header_.frame_id));
-            
-        //     ptCloud_tgfwise_nonground_.header = cloud_header_;
-        //     pub_tgseg_nonground_cloud.publish(convertCloudToRosMsg(ptCloud_tgfwise_nonground_, cloud_header_.frame_id));
-
-        //     ptCloud_tgfwise_outliers_.header = cloud_header_;
-        //     pub_tgseg_outliers_cloud.publish(convertCloudToRosMsg(ptCloud_tgfwise_outliers_, cloud_header_.frame_id));
-        // }
     };
 }
 #endif

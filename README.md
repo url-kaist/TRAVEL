@@ -15,43 +15,76 @@ Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentatio
 Object segmentation, Traversable ground segmentation, Graph search, Autonomous navigation, LiDAR
 
 
+## Repository Layout
+
+The repo is split so the algorithm core can be consumed without ROS.
+
+```
+TRAVEL/
+├── cpp/
+│   ├── travel/        # Pure C++ core library (header-only). No ROS.
+│   │   ├── core/travel/{tgs,aos,point_types,save_labels,kitti_loader,logging}.hpp
+│   │   └── core/travel/3rdparty/nanoflann*.hpp
+│   └── examples/      # Standalone CLI demo (run_travel_kitti). No ROS.
+└── ros/               # ROS1 (catkin) wrapper that consumes cpp/travel/.
+    └── src/main.cpp, msg/, launch/, config/, rviz/
+```
+
 ## Test Env.
-- Ubuntu 18.04 LTS
-- ROS Melodic
+- Algorithm core (`cpp/`): Ubuntu 20.04+, macOS 13+ (Apple Silicon / Intel) — needs only PCL + Boost.
+- ROS wrapper (`ros/`): Ubuntu 18.04 / ROS Melodic (original target). Newer combos (Ubuntu 20.04 / Noetic) should work but are not regression-tested.
 
 ## How to Build
-1. Dependencies
-    ```
-    sudo apt install cmake libeigen3-dev libboost-all-dev
-    sudo apt-get install ros-melodic-jsk-recognition
-    sudo apt-get install ros-melodic-jsk-common-msgs
-    sudo apt-get install ros-melodic-jsk-rviz-plugins
-    ```
-2. Build
-    ```
-    mkdir -p catkin_ws/src/
-    cd catkin_ws/src/
-    git clone https://github.com/url-kaist/TRAVEL.git
-    ../
-    catkin_make
-    ```
-    
-## How to Run TRAVEL
 
-- RUN!
+### Core library + standalone example (no ROS)
+
+```
+# Dependencies
+# Ubuntu:  sudo apt install cmake libeigen3-dev libboost-all-dev libpcl-dev
+# macOS:   brew install cmake eigen boost pcl
+
+cmake -S cpp/travel -B build -DTRAVEL_BUILD_EXAMPLES=ON
+cmake --build build -j
+
+# Run the demo on a KITTI sequence
+./build/examples/run_travel_kitti /path/to/kitti/sequences/00 0 /tmp/travel_out
+```
+
+### ROS1 wrapper
+
+The catkin package now lives under `ros/`. Cloning the repo into a catkin workspace works as-is, because catkin discovers `ros/package.xml` recursively and the `ros/CMakeLists.txt` pulls in the C++ core via `add_subdirectory(../cpp/travel)`.
+
+```
+# Dependencies (Noetic / Ubuntu 20.04 shown — Melodic / 18.04 also works)
+sudo apt install cmake libeigen3-dev libboost-all-dev
+sudo apt-get install ros-noetic-pcl-ros ros-noetic-pcl-conversions
+
+mkdir -p catkin_ws/src
+cd catkin_ws/src
+git clone https://github.com/url-kaist/TRAVEL.git
+cd ..
+catkin_make
+```
+
+Verified: Ubuntu 20.04 + ROS Noetic via `osrf/ros:noetic-desktop-full` Docker image.
+
+## How to Run TRAVEL
 
 ```
 roslaunch travel travel_run.launch
 ```
 
-## On your setting.
-1. Include two header files in your source. "tgs.hpp" & "aos.hpp"
-2. Initialize "travel::TravelGroundSeg<PointT>" and "travel::ObjectCluster<PointT>"
-3. Use the "setParams()" function in each class to set the parameters.
-4. Use "travel::TravelGroundSeg.estimateGround()" function for traversable ground segmentation
-5. Use "travel::ObjectCluster.segmentObjects()" function for above-ground object segmentation
-* I will upload an example ros node that subscribes to sensor data.
+## On your setting
+
+1. Include `travel/tgs.hpp` and `travel/aos.hpp` from the `cpp/travel/core` include path.
+2. Initialize `travel::TravelGroundSeg<PointT>` and `travel::ObjectCluster<PointT>`.
+3. Use `setParams()` on each class to configure.
+4. Use `TravelGroundSeg::estimateGround()` for traversable ground segmentation.
+5. Use `ObjectCluster::segmentObjects()` for above-ground object segmentation.
+6. Logging in the core is routed through `TRAVEL_LOG_*` macros (in `travel/logging.hpp`). Define `TRAVEL_USE_ROS_LOGGING` at compile time to dispatch to ROS_INFO/WARN/ERROR; otherwise output goes to stdout/stderr.
+
 * If you want to use TRAVEL with python code, then visit here (https://github.com/darrenjkt/TRAVEL). Thank you Darren :)
+* `pip install travel-seg` Python bindings are planned (Phase 2).
 
 ## Citation
 If our research has been helpful, please cite the below papers:
