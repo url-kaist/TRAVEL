@@ -1,42 +1,30 @@
 <?xml version="1.0"?>
-<package format="2">
-  <name>travel</name>
-  <version>0.1.0</version>
-  <description>The travel package</description>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>travel_ros</name>
+  <version>1.0.0</version>
+  <description>ROS 2 wrapper around the TRAVEL ground / above-ground object segmentation library.</description>
 
-  
   <maintainer email="dhalsgh03@gmail.com">Minho Oh</maintainer>
   <maintainer email="egjung94@gmail.com">Euigon Jung</maintainer>
+  <maintainer email="shapelim@mit.edu">Hyungtae Lim</maintainer>
 
-  <license>GPL-3.0 license</license>
+  <license>GPL-3.0-or-later</license>
 
   <author email="dhalsgh03@gmail.com">Minho Oh</author>
   <author email="egjung94@gmail.com">Euigon Jung</author>
+  <author email="shapelim@mit.edu">Hyungtae Lim</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_export_depend>roscpp</build_export_depend>
-  <exec_depend>roscpp</exec_depend>
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>pcl_conversions</depend>
+  <depend>libpcl-all-dev</depend>
+  <depend>eigen</depend>
 
-  <build_depend>std_msgs</build_depend>
-  <build_export_depend>std_msgs</build_export_depend>
-  <exec_depend>std_msgs</exec_depend>
-
-  <build_depend>sensor_msgs</build_depend>
-  <build_export_depend>sensor_msgs</build_export_depend>
-  <exec_depend>sensor_msgs</exec_depend>
-
-  <build_depend>geometry_msgs</build_depend>
-  <build_export_depend>geometry_msgs</build_export_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
-
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- Other tools can request additional information be placed here -->
-
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

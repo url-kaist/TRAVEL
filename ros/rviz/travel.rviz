@@ -1,0 +1,57 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 5
+      Plane Cell Count: 20
+    - Class: rviz_default_plugins/PointCloud2
+      Name: ground
+      Enabled: true
+      Topic:
+        Value: /travel_node/ground
+        Reliability Policy: Best Effort
+        History Policy: Keep Last
+      Color Transformer: FlatColor
+      Color: 100; 220; 100
+      Size (Pixels): 2
+    - Class: rviz_default_plugins/PointCloud2
+      Name: nonground
+      Enabled: true
+      Topic:
+        Value: /travel_node/nonground
+        Reliability Policy: Best Effort
+        History Policy: Keep Last
+      Color Transformer: FlatColor
+      Color: 200; 200; 200
+      Size (Pixels): 2
+    - Class: rviz_default_plugins/PointCloud2
+      Name: labeled
+      Enabled: true
+      Topic:
+        Value: /travel_node/labeled
+        Reliability Policy: Best Effort
+        History Policy: Keep Last
+      Color Transformer: Intensity
+      Channel Name: id
+      Size (Pixels): 3
+  Global Options:
+    Background Color: 30; 30; 30
+    Fixed Frame: map
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 80
+      Pitch: 0.6
+      Yaw: 0.8
+Window Geometry:
+  Height: 720
+  Width: 1280

@@ -1,85 +1,67 @@
-cmake_minimum_required(VERSION 3.0.2)
-project(travel)
+cmake_minimum_required(VERSION 3.16)
+project(travel_ros LANGUAGES C CXX)
 
-set(CMAKE_BUILD_TYPE "Release")
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g -pthread")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -pthread")
 
-# --- catkin / ROS1 dependencies -------------------------------------------
-find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    rospy
-    roslaunch
-    pcl_conversions
-    pcl_ros
-    cv_bridge
-    geometry_msgs
-    sensor_msgs
-    std_msgs
-    message_generation
-)
-
-find_package(PCL REQUIRED)
-find_package(Boost 1.54 REQUIRED)
-
-add_message_files(
-    FILES
-    node.msg
-)
-
-generate_messages(
-    DEPENDENCIES
-    sensor_msgs
-    geometry_msgs
-    std_msgs
-)
-
-catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES travel
-    CATKIN_DEPENDS roscpp std_msgs message_runtime
-)
+# Default to C99 for the C-language probes pulled in by find_package(MPI).
+if (NOT CMAKE_C_STANDARD)
+    set(CMAKE_C_STANDARD 99)
+endif()
 
 # --- TRAVEL pure-C++ core (consumed in-tree) -------------------------------
-# The core lives at ../cpp/travel and is plain CMake (no ROS). Pulling it in
-# via add_subdirectory makes the `travel::travel_core` interface library
-# available to catkin executables below. This is the same pattern KISS-Matcher
-# uses for its ROS wrapper.
+# Same pattern as KISS-Matcher's ros2 wrapper. The core is plain CMake (no
+# ROS) and lives at ../cpp/travel; we pull it in via add_subdirectory so the
+# `travel::travel_core` interface library is available below. The core
+# already calls find_package(MPI) + find_package(PCL) for us, so the ROS
+# wrapper does not need to repeat that.
 if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/travel/CMakeLists.txt)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../cpp/travel
                      ${CMAKE_CURRENT_BINARY_DIR}/travel_core)
 else()
     message(FATAL_ERROR
-        "Missing ../cpp/travel relative to ros/. The ROS wrapper expects the "
-        "TRAVEL C++ core to live alongside it. If you only have the ROS layer, "
-        "install travel via cmake --install on cpp/travel and remove this "
-        "branch in favor of find_package(travel).")
+        "Missing ../cpp/travel relative to ros/. The ROS 2 wrapper expects "
+        "the TRAVEL C++ core to live alongside it. Install travel via "
+        "cmake --install on cpp/travel and switch this branch to "
+        "find_package(travel) if you only have the ROS layer.")
 endif()
 
-include_directories(
-    include
-    ${catkin_INCLUDE_DIRS}
-    ${PCL_INCLUDE_DIRS}
-)
-link_directories(${PCL_LIBRARY_DIRS})
+# --- ament / ROS 2 dependencies --------------------------------------------
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(PCL REQUIRED COMPONENTS common io)
 
-add_executable(${PROJECT_NAME}_main src/main.cpp)
-add_dependencies(${PROJECT_NAME}_main ${${PROJECT_NAME}_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_main
+# --- Node ------------------------------------------------------------------
+add_executable(travel_node src/travel_node.cpp)
+ament_target_dependencies(travel_node
+    rclcpp
+    sensor_msgs
+    std_msgs
+    pcl_conversions
+)
+target_link_libraries(travel_node
     travel::travel_core
-    ${catkin_LIBRARIES}
     ${PCL_LIBRARIES}
 )
+target_compile_definitions(travel_node PRIVATE TRAVEL_USE_ROS2_LOGGING)
 
-# Route TRAVEL_LOG_* in the core through ROS_INFO/WARN/ERROR for this build.
-target_compile_definitions(${PROJECT_NAME}_main PRIVATE TRAVEL_USE_ROS_LOGGING)
-
-install(TARGETS ${PROJECT_NAME}_main
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# --- Install ---------------------------------------------------------------
+install(TARGETS travel_node
+    DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY launch config rviz
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+    DESTINATION share/${PROJECT_NAME}
 )
+
+ament_package()

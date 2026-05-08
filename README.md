@@ -29,13 +29,15 @@ TRAVEL/
 ├── python/            # pip-installable bindings (travel-seg).
 │   ├── pyproject.toml, CMakeLists.txt
 │   └── travel_seg/    # numpy-friendly Python API on top of the C++ core
-└── ros/               # ROS1 (catkin) wrapper that consumes cpp/travel/.
-    └── src/main.cpp, msg/, launch/, config/, rviz/
+└── ros/               # ROS 2 (ament_cmake) wrapper that consumes cpp/travel/.
+    └── src/travel_node.cpp, launch/, config/, rviz/
 ```
+
+> **ROS 2 only.** As of v1.0, the `ros/` layer is ROS 2 (ament_cmake). The previous catkin / ROS 1 wrapper lives on at tag `v0.1`. Pin to that tag for Melodic / Noetic.
 
 ## Test Env.
 - Algorithm core (`cpp/`): Ubuntu 20.04+, macOS 13+ (Apple Silicon / Intel) — needs only PCL + Boost.
-- ROS wrapper (`ros/`): Ubuntu 18.04 / ROS Melodic (original target). Newer combos (Ubuntu 20.04 / Noetic) should work but are not regression-tested.
+- ROS 2 wrapper (`ros/`): verified on **Humble** (Ubuntu 22.04) and **Jazzy** (Ubuntu 24.04).
 
 ## How to Build
 
@@ -75,29 +77,35 @@ cmake --build build -j
 ./build/examples/run_travel_kitti /path/to/kitti/sequences/00 0 /tmp/travel_out
 ```
 
-### ROS1 wrapper
-
-The catkin package now lives under `ros/`. Cloning the repo into a catkin workspace works as-is, because catkin discovers `ros/package.xml` recursively and the `ros/CMakeLists.txt` pulls in the C++ core via `add_subdirectory(../cpp/travel)`.
+### ROS 2 wrapper
 
 ```
-# Dependencies (Noetic / Ubuntu 20.04 shown — Melodic / 18.04 also works)
-sudo apt install cmake libeigen3-dev libboost-all-dev
-sudo apt-get install ros-noetic-pcl-ros ros-noetic-pcl-conversions
+# Dependencies (Humble / Ubuntu 22.04; Jazzy / 24.04 substitutes 'humble' below)
+sudo apt install build-essential cmake libeigen3-dev libpcl-dev \
+                 libboost-system-dev libboost-filesystem-dev mpi-default-dev \
+                 ros-humble-pcl-conversions
 
-mkdir -p catkin_ws/src
-cd catkin_ws/src
+mkdir -p ros2_ws/src
+cd ros2_ws/src
 git clone https://github.com/url-kaist/TRAVEL.git
 cd ..
-catkin_make
+source /opt/ros/humble/setup.bash
+colcon build --packages-select travel_ros
 ```
 
-Verified: Ubuntu 20.04 + ROS Noetic via `osrf/ros:noetic-desktop-full` Docker image.
+Verified in CI on Humble (Ubuntu 22.04) and Jazzy (Ubuntu 24.04) via the
+official `ros:humble` / `ros:jazzy` Docker images.
 
 ## How to Run TRAVEL
 
 ```
-roslaunch travel travel_run.launch
+source install/setup.bash
+ros2 launch travel_ros travel_run.launch.py input_topic:=/your_lidar_topic
 ```
+
+The node subscribes to `~/input` (sensor_msgs/PointCloud2) and publishes
+`~/ground`, `~/nonground`, `~/labeled`. All algorithm parameters are
+declared as ROS 2 node parameters; see `ros/config/kitti_params.yaml`.
 
 ## On your setting
 

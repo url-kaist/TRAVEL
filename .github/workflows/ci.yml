@@ -179,3 +179,51 @@ jobs:
             test -s "$f" || { echo "missing or empty: $f"; exit 1; }
           done
           echo "Python example outputs look healthy."
+
+  ros2-build:
+    name: ROS 2 build (${{ matrix.distro }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: humble
+            os: ubuntu-22.04
+          - distro: jazzy
+            os: ubuntu-24.04
+    container:
+      image: ros:${{ matrix.distro }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends \
+            build-essential cmake \
+            libeigen3-dev \
+            libboost-system-dev libboost-filesystem-dev \
+            libpcl-dev mpi-default-dev \
+            ros-${{ matrix.distro }}-pcl-conversions \
+            ros-${{ matrix.distro }}-rclcpp \
+            ros-${{ matrix.distro }}-sensor-msgs \
+            ros-${{ matrix.distro }}-std-msgs \
+            python3-colcon-common-extensions
+
+      - name: colcon build travel_ros
+        # The repo at the workflow checkout location is treated as a single
+        # ROS 2 source package — colcon discovers ros/package.xml recursively
+        # and the inner CMakeLists pulls in cpp/travel via add_subdirectory.
+        shell: bash
+        run: |
+          set -e
+          source /opt/ros/${{ matrix.distro }}/setup.bash
+          mkdir -p /tmp/ws/src
+          cp -a "$GITHUB_WORKSPACE" /tmp/ws/src/TRAVEL
+          cd /tmp/ws
+          colcon build --packages-select travel_ros \
+            --cmake-args -DCMAKE_BUILD_TYPE=Release
+          test -x install/travel_ros/lib/travel_ros/travel_node || {
+            echo "travel_node executable not produced"; exit 1; }
+          echo "travel_node built OK on ROS 2 ${{ matrix.distro }}"
