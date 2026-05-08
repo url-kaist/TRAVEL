@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.16...3.31)
-project(travel VERSION 1.0.0 LANGUAGES CXX)
+# C language is enabled (alongside C++) so find_package(MPI) below can
+# resolve its C component, which VTK 9.1's CMake config needs as MPI::MPI_C
+# when shipped with Ubuntu 22.04's libpcl-dev. We don't actually compile any
+# C source files; this only enables the language for find-time checks.
+project(travel VERSION 1.0.0 LANGUAGES C CXX)
 
 option(USE_CCACHE "Build using Ccache if found on the path" ON)
 option(TRAVEL_BUILD_EXAMPLES "Build standalone examples in cpp/examples" OFF)
