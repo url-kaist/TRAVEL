@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.16...3.31)
-project(travel VERSION 1.0.0 LANGUAGES CXX)
+# C language is enabled (alongside C++) so find_package(MPI) below can
+# resolve its C component, which VTK 9.1's CMake config needs as MPI::MPI_C
+# when shipped with Ubuntu 22.04's libpcl-dev. We don't actually compile any
+# C source files; this only enables the language for find-time checks.
+project(travel VERSION 1.0.0 LANGUAGES C CXX)
 
 option(USE_CCACHE "Build using Ccache if found on the path" ON)
 option(TRAVEL_BUILD_EXAMPLES "Build standalone examples in cpp/examples" OFF)
+option(TRAVEL_BUILD_TESTS "Build regression / unit tests in cpp/tests" OFF)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Setting build type to 'Release' as none was specified.")
@@ -25,6 +30,13 @@ include(GNUInstallDirs)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # --- Dependencies ----------------------------------------------------------
+# Ubuntu 22.04's libpcl-dev is built against VTK 9.1, whose CMake config
+# advertises VTK::mpi -> MPI::MPI_C without running find_package(MPI)
+# itself. We pre-find MPI here so that imported target exists by the time
+# PCL pulls VTK in. The find is tolerant (no REQUIRED) — older PCL/VTK
+# stacks (macOS Homebrew, Ubuntu 20.04) don't need it and the find is a
+# no-op there.
+find_package(MPI)
 # PCL pulls in Eigen and Boost transitively for the headers we use.
 find_package(PCL REQUIRED COMPONENTS common io filters)
 find_package(Boost REQUIRED COMPONENTS filesystem system)
@@ -59,6 +71,11 @@ target_compile_definitions(${TARGET_NAME} INTERFACE ${PCL_DEFINITIONS})
 # --- Examples (opt-in) -----------------------------------------------------
 if (TRAVEL_BUILD_EXAMPLES)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../examples ${CMAKE_CURRENT_BINARY_DIR}/examples)
+endif()
+
+# --- Tests (opt-in) --------------------------------------------------------
+if (TRAVEL_BUILD_TESTS)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../tests ${CMAKE_CURRENT_BINARY_DIR}/tests)
 endif()
 
 # --- Install ---------------------------------------------------------------
