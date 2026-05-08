@@ -18,6 +18,10 @@ if (NOT TARGET travel::travel_core)
     find_package(travel REQUIRED)
 endif()
 
+# Materialize MPI::MPI_C before PCL on platforms where libpcl-dev is built
+# against VTK 9.1 (Ubuntu 22.04+); see cpp/tests/CMakeLists.txt for
+# context. No-op where PCL's VTK doesn't require MPI.
+find_package(MPI)
 find_package(PCL REQUIRED COMPONENTS common io filters)
 
 add_executable(run_travel_kitti src/run_travel_kitti.cpp)

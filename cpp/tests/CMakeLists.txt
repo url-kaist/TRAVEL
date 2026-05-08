@@ -18,6 +18,12 @@ if (NOT TARGET travel::travel_core)
     find_package(travel REQUIRED)
 endif()
 
+# On Ubuntu 22.04 + libpcl-dev, PCL pulls in VTK 9.1 whose CMake config
+# advertises VTK::mpi -> MPI::MPI_C. The PCL config doesn't run
+# find_package(MPI), so configure fails unless we materialize MPI::MPI_C
+# ourselves first. The find is tolerant — on platforms without an MPI
+# install (or where VTK doesn't need it), this is a no-op.
+find_package(MPI)
 find_package(PCL REQUIRED COMPONENTS common io filters)
 
 add_executable(regression_kitti regression_kitti.cpp)
