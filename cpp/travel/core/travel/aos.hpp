@@ -149,8 +149,8 @@ namespace travel {
                     MAX_CLUSTER_SIZE = _max_cluster_size;
             }
 
-            void segmentObjects(boost::shared_ptr<pcl::PointCloud<T>> cloud_in,
-                            boost::shared_ptr<pcl::PointCloud<T>> cloud_out,
+            void segmentObjects(typename pcl::PointCloud<T>::Ptr cloud_in,
+                            typename pcl::PointCloud<T>::Ptr cloud_out,
                             vector<float> *vert_angles=nullptr) {
                 // 0. reset
                 max_label_ = 1;
@@ -192,8 +192,8 @@ namespace travel {
                 printf("Post-processing: %ld ms\n", chrono::duration_cast<chrono::milliseconds>(end-start).count());
             }
 
-            void sphericalProjection(boost::shared_ptr<pcl::PointCloud<T>> cloud_in) {
-                boost::shared_ptr<pcl::PointCloud<T>> valid_cloud = boost::make_shared<pcl::PointCloud<T>>();
+            void sphericalProjection(typename pcl::PointCloud<T>::Ptr cloud_in) {
+                typename pcl::PointCloud<T>::Ptr valid_cloud(new pcl::PointCloud<T>());
                 valid_cloud->points.reserve(cloud_in->points.size());
                 int ring_idx = -1, row_idx = -1, col_idx = -1;
                 float range;
@@ -245,8 +245,8 @@ namespace travel {
                 *cloud_in = *valid_cloud;
             }
 
-            void labelPointcloud(boost::shared_ptr<pcl::PointCloud<T>> cloud_in,
-                                boost::shared_ptr<pcl::PointCloud<T>> cloud_out) {
+            void labelPointcloud(typename pcl::PointCloud<T>::Ptr cloud_in,
+                                typename pcl::PointCloud<T>::Ptr cloud_out) {
                 num_clusters_ = 0;
                 uint pt_cnt = 0;
                 uint max = 2000;

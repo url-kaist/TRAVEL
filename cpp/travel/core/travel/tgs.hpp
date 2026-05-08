@@ -14,6 +14,7 @@
 #include <math.h>
 #include <fstream>
 #include <memory>
+#include <queue>
 #include <signal.h>
 
 #include <pcl/filters/filter.h>

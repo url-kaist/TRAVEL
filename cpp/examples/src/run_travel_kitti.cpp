@@ -122,10 +122,8 @@ int main(int argc, char** argv) {
                   /*min_cluster_size=*/10,
                   /*max_cluster_size=*/30000);
 
-    boost::shared_ptr<pcl::PointCloud<PointXYZILID>> nonground_ptr =
-        boost::make_shared<pcl::PointCloud<PointXYZILID>>(nonground);
-    boost::shared_ptr<pcl::PointCloud<PointXYZILID>> labeled_ptr =
-        boost::make_shared<pcl::PointCloud<PointXYZILID>>();
+    pcl::PointCloud<PointXYZILID>::Ptr nonground_ptr(new pcl::PointCloud<PointXYZILID>(nonground));
+    pcl::PointCloud<PointXYZILID>::Ptr labeled_ptr(new pcl::PointCloud<PointXYZILID>());
     aos.segmentObjects(nonground_ptr, labeled_ptr);
     std::cout << "[AOS] labeled points=" << labeled_ptr->size() << std::endl;
 
