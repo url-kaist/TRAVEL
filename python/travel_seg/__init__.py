@@ -19,7 +19,7 @@ Quick start::
 from ._api import ObjectCluster, TravelGroundSeg, segment
 from ._config import GroundSegConfig, ObjectClusterConfig, SegmentResult
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 __all__ = [
     "GroundSegConfig",
