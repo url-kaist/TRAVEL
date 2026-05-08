@@ -151,7 +151,7 @@ PYBIND11_MODULE(_travel_seg, m) {
     m.doc() =
         "pybind11 bindings for the TRAVEL traversable-ground / object "
         "segmentation library.";
-    m.attr("__version__") = "0.1.0";
+    m.attr("__version__") = "1.0.0";
 
     // -- TravelGroundSeg ------------------------------------------------------
     py::class_<travel::TravelGroundSeg<PointXYZILID>>(m, "_TravelGroundSeg")

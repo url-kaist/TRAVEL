@@ -19,13 +19,13 @@ cd TRAVEL
 pip install -e python/
 ```
 
-### From PyPI (planned)
+### From PyPI
 
 ```bash
 pip install travel-seg
 ```
 
-The PyPI sdist's `python/CMakeLists.txt` falls back to `FetchContent` for the C++ core, so no separate clone is needed.
+The PyPI sdist's `python/CMakeLists.txt` falls back to `FetchContent` for the C++ core, so no separate clone is needed. System-side, you still need PCL + Boost + Eigen on the build path — see the system-deps lines in the source-install block above.
 
 ## Usage
 
@@ -84,3 +84,33 @@ python python/examples/run_kitti.py /path/to/kitti/sequences/00 0 /tmp/out
 ## Citation
 
 See the top-level [README](../README.md).
+
+## Release process
+
+Releases are cut manually via the GitHub Actions `Release (TestPyPI / PyPI)`
+workflow. To publish a new version:
+
+1. Bump version in three places to keep them in sync:
+   - `python/pyproject.toml` -> `[project] version`
+   - `python/travel_seg/__init__.py` -> `__version__`
+   - `python/travel_seg/pybind/travel_pybind.cpp` -> `m.attr("__version__")`
+2. Commit, tag, push:
+   ```bash
+   git commit -am "release: travel-seg vX.Y.Z"
+   git tag vX.Y.Z
+   git push origin main vX.Y.Z
+   ```
+3. Trigger the workflow with `target=testpypi` from the GitHub Actions UI.
+4. Verify the install:
+   ```bash
+   python -m venv /tmp/check && source /tmp/check/bin/activate
+   pip install --index-url https://test.pypi.org/simple/ \
+               --extra-index-url https://pypi.org/simple/ travel-seg==X.Y.Z
+   python -c "import travel_seg as ts; import numpy as np; \
+              ts.segment(np.random.uniform(-10,10,(2000,3)).astype(np.float32))"
+   ```
+5. Re-run the workflow with `target=pypi` to push to the real index.
+
+Required repo secrets (Settings -> Secrets and variables -> Actions):
+- `TEST_PYPI_API_TOKEN` from https://test.pypi.org/manage/account/token/
+- `PYPI_API_TOKEN` from https://pypi.org/manage/account/token/
