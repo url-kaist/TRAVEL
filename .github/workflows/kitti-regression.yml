@@ -28,18 +28,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install build deps (PCL + Boost + Eigen)
-        # libopenmpi-dev is needed because Ubuntu 22.04's libpcl-dev pulls in
-        # VTK 9.1 which transitively imports MPI::MPI_C in its CMake config.
-        # Without it the find_package(PCL) configure step fails with
-        # "VTK::mpi link interface MPI::MPI_C not found".
+      - name: Install build deps (PCL + Boost + Eigen + MPI)
+        # mpi-default-dev installs the headers + binaries (mpicc) the cmake
+        # FindMPI module looks for. Plain libopenmpi-dev is not enough —
+        # FindMPI fails silently to detect openmpi without the compiler
+        # wrappers, leaving MPI::MPI_C unresolved when PCL's VTK 9.1 config
+        # tries to set up VTK::mpi.
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends \
             build-essential cmake \
             libeigen3-dev \
             libboost-system-dev libboost-filesystem-dev \
-            libpcl-dev libopenmpi-dev
+            libpcl-dev mpi-default-dev
 
       - name: Print toolchain
         run: |
