@@ -1,0 +1,181 @@
+name: CI
+
+# Three jobs:
+#   * cpp-regression: bit-identical comparison against the committed gold dump
+#     (the load-bearing test — catches any algorithmic drift).
+#   * cpp-examples:   builds run_travel_kitti and smoke-runs it against the
+#     KITTI fixture, just verifying that the standalone non-ROS demo still
+#     produces non-empty PCD outputs.
+#   * python-tests:   pip install -e python/, run pytest on synthetic data,
+#     and exercise python/examples/run_kitti.py against the KITTI fixture.
+#
+# All three share the same KITTI .bin fixture from the test-data-v1 release.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  KITTI_FIXTURE_URL: https://github.com/url-kaist/TRAVEL/releases/download/test-data-v1/kitti00_000000.bin
+  # 124,668 points * 4 floats * 4 bytes
+  KITTI_FIXTURE_BYTES: 1994688
+
+jobs:
+  cpp-regression:
+    name: KITTI regression (C++ bit-compare)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build deps (PCL + Boost + Eigen + MPI)
+        # mpi-default-dev installs the headers + binaries (mpicc) the cmake
+        # FindMPI module looks for. Plain libopenmpi-dev is not enough —
+        # FindMPI fails silently to detect openmpi without the compiler
+        # wrappers, leaving MPI::MPI_C unresolved when PCL's VTK 9.1 config
+        # tries to set up VTK::mpi.
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake \
+            libeigen3-dev \
+            libboost-system-dev libboost-filesystem-dev \
+            libpcl-dev mpi-default-dev
+
+      - name: Print toolchain
+        run: |
+          g++ --version | head -1
+          cmake --version | head -1
+          dpkg -l | grep libpcl-dev | awk '{print $2, $3}'
+
+      - name: Download KITTI fixture
+        run: |
+          mkdir -p /tmp/travel_fixtures
+          curl -L --fail -o /tmp/travel_fixtures/kitti00_000000.bin "$KITTI_FIXTURE_URL"
+          test "$(stat -c%s /tmp/travel_fixtures/kitti00_000000.bin)" = "$KITTI_FIXTURE_BYTES"
+
+      - name: Configure & build regression test
+        run: |
+          cmake -S cpp/travel -B build -DTRAVEL_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --target regression_kitti -j
+
+      - name: Run regression (bit-compare against gold)
+        run: |
+          ./build/tests/regression_kitti \
+            /tmp/travel_fixtures/kitti00_000000.bin \
+            /tmp/run_dump.bin \
+            cpp/tests/data/kitti00_000000_gold.bin
+
+      - name: Upload run dump on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpp-regression-dump
+          path: /tmp/run_dump.bin
+          retention-days: 7
+
+  cpp-examples:
+    name: cpp/examples smoke (run_travel_kitti)
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake \
+            libeigen3-dev \
+            libboost-system-dev libboost-filesystem-dev \
+            libpcl-dev mpi-default-dev
+
+      - name: Download KITTI fixture (laid out as a sequence dir)
+        # run_travel_kitti expects <seq>/velodyne/<frame>.bin layout.
+        run: |
+          mkdir -p /tmp/kitti_seq/00/velodyne
+          curl -L --fail \
+            -o /tmp/kitti_seq/00/velodyne/000000.bin \
+            "$KITTI_FIXTURE_URL"
+          test "$(stat -c%s /tmp/kitti_seq/00/velodyne/000000.bin)" = "$KITTI_FIXTURE_BYTES"
+
+      - name: Configure & build examples
+        run: |
+          cmake -S cpp/travel -B build -DTRAVEL_BUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --target run_travel_kitti -j
+
+      - name: Smoke-run run_travel_kitti
+        # Exit non-zero if the binary crashes, OR if any of the three
+        # expected PCDs are missing or empty. We don't bit-compare the PCD
+        # contents — that's covered by the C++ regression job. This is just
+        # "did the standalone path break?".
+        run: |
+          mkdir -p /tmp/example_out
+          ./build/examples/run_travel_kitti /tmp/kitti_seq/00 0 /tmp/example_out
+          ls -la /tmp/example_out/
+          for f in /tmp/example_out/0_ground.pcd /tmp/example_out/0_nonground.pcd /tmp/example_out/0_labeled.pcd; do
+            test -s "$f" || { echo "missing or empty: $f"; exit 1; }
+          done
+          echo "PCD outputs look healthy."
+
+      - name: Upload example output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpp-examples-output
+          path: /tmp/example_out
+          retention-days: 7
+
+  python-tests:
+    name: Python (pip install + pytest)
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.12']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install C++ build deps (for the pybind compile step)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake \
+            libeigen3-dev \
+            libboost-system-dev libboost-filesystem-dev \
+            libpcl-dev mpi-default-dev
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Pip install travel-seg + test extras
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -v -e 'python/[test]'
+
+      - name: Download KITTI fixture
+        run: |
+          mkdir -p /tmp/kitti_seq/00/velodyne
+          curl -L --fail \
+            -o /tmp/kitti_seq/00/velodyne/000000.bin \
+            "$KITTI_FIXTURE_URL"
+
+      - name: pytest (synthetic-data smoke tests)
+        run: pytest python/tests/ -v
+
+      - name: python/examples/run_kitti.py against the fixture
+        run: |
+          mkdir -p /tmp/python_example_out
+          python python/examples/run_kitti.py /tmp/kitti_seq/00 0 /tmp/python_example_out
+          ls -la /tmp/python_example_out/
+          for f in /tmp/python_example_out/000000.ground.npy \
+                   /tmp/python_example_out/000000.nonground.npy \
+                   /tmp/python_example_out/000000.labels.npy; do
+            test -s "$f" || { echo "missing or empty: $f"; exit 1; }
+          done
+          echo "Python example outputs look healthy."
