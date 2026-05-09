@@ -358,13 +358,22 @@ namespace travel {
             empty_trigrid_node_.check_life = 10;
             empty_trigrid_node_.depth = -1;
 
-            empty_trigrid_node_.normal;
-            empty_trigrid_node_.mean_pt;
-            empty_trigrid_node_.d = 0;
-            
-            empty_trigrid_node_.singular_values;
-            empty_trigrid_node_.eigen_vectors;
-            empty_trigrid_node_.weight = 0;
+            // The four lines below were no-op expression statements — almost
+            // certainly intended as zero-initializations but missing the
+            // assignment. Eigen types do not zero-init by default for
+            // performance, so without these the empty_trigrid_node_ ships
+            // four uninitialized members; copies of it then seed every
+            // node in trigrid_field_ with stack garbage. The algorithm
+            // overwrites these in the common path, but a few edge cases
+            // (small empty cells, boundary nodes) end up reading them,
+            // which surfaces as run-to-run nondeterminism downstream.
+            empty_trigrid_node_.normal          = Eigen::Vector3f::Zero();
+            empty_trigrid_node_.mean_pt         = Eigen::Vector3f::Zero();
+            empty_trigrid_node_.d               = 0;
+
+            empty_trigrid_node_.singular_values = Eigen::Vector3f::Zero();
+            empty_trigrid_node_.eigen_vectors   = Eigen::Matrix3f::Zero();
+            empty_trigrid_node_.weight          = 0;
 
             empty_trigrid_node_.th_dist_d = 0;
             empty_trigrid_node_.th_outlier_d = 0;
