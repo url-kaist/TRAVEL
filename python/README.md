@@ -87,8 +87,28 @@ See the top-level [README](../README.md).
 
 ## Release process
 
-Releases are cut manually via the GitHub Actions `Release (TestPyPI / PyPI)`
-workflow. To publish a new version:
+Publishing uses **PyPI Trusted Publishing (OIDC)**, so there are no API
+tokens or GitHub secrets to manage. PyPI authenticates the GitHub Actions
+workflow directly based on a one-time pending-publisher registration.
+
+### One-time PyPI setup
+
+Visit https://pypi.org/manage/account/publishing/ and add a *pending*
+publisher with these values (only required before the very first release;
+it auto-graduates to a regular trusted publisher after the first upload):
+
+| Field | Value |
+|---|---|
+| PyPI Project Name | `travel-seg` |
+| Owner | `url-kaist` |
+| Repository name | `TRAVEL` |
+| Workflow name | `release.yml` |
+| Environment name | `pypi` |
+
+GitHub side: create an environment named `pypi` at Settings -> Environments
+(no secrets/protection rules needed unless you want manual approval).
+
+### Per-release flow
 
 1. Bump version in three places to keep them in sync:
    - `python/pyproject.toml` -> `[project] version`
@@ -100,17 +120,11 @@ workflow. To publish a new version:
    git tag vX.Y.Z
    git push origin main vX.Y.Z
    ```
-3. Trigger the workflow with `target=testpypi` from the GitHub Actions UI.
-4. Verify the install:
+3. Trigger the **Release (PyPI)** workflow from the GitHub Actions UI.
+4. Verify the install in a fresh venv:
    ```bash
    python -m venv /tmp/check && source /tmp/check/bin/activate
-   pip install --index-url https://test.pypi.org/simple/ \
-               --extra-index-url https://pypi.org/simple/ travel-seg==X.Y.Z
+   pip install travel-seg==X.Y.Z
    python -c "import travel_seg as ts; import numpy as np; \
               ts.segment(np.random.uniform(-10,10,(2000,3)).astype(np.float32))"
    ```
-5. Re-run the workflow with `target=pypi` to push to the real index.
-
-Required repo secrets (Settings -> Secrets and variables -> Actions):
-- `TEST_PYPI_API_TOKEN` from https://test.pypi.org/manage/account/token/
-- `PYPI_API_TOKEN` from https://pypi.org/manage/account/token/
