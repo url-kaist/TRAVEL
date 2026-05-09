@@ -44,8 +44,17 @@ TRAVEL/
 ### Python (pip)
 
 ```
-# Ubuntu deps:  sudo apt install build-essential cmake libeigen3-dev libpcl-dev libboost-system-dev libboost-filesystem-dev
-# macOS deps:   brew install cmake eigen boost pcl
+pip install travel-seg
+```
+
+Prebuilt wheels are published for **Linux x86_64 (manylinux), macOS arm64 + x86_64, and Windows x86_64** for CPython 3.8–3.13 — no system PCL / Boost install required since v1.1.
+
+For development from a checkout:
+
+```
+# Ubuntu deps:  sudo apt install build-essential cmake libeigen3-dev
+# macOS deps:   brew install cmake eigen
+# Windows deps: vcpkg install eigen3:x64-windows
 
 git clone https://github.com/url-kaist/TRAVEL.git
 cd TRAVEL

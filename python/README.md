@@ -4,28 +4,32 @@ Python bindings for [TRAVEL](https://github.com/url-kaist/TRAVEL) — traversabl
 
 ## Install
 
-### From source (development)
-
-```bash
-# System deps (Ubuntu)
-sudo apt install build-essential cmake libeigen3-dev libpcl-dev \
-                 libboost-system-dev libboost-filesystem-dev
-
-# System deps (macOS)
-brew install cmake eigen boost pcl
-
-git clone https://github.com/url-kaist/TRAVEL.git
-cd TRAVEL
-pip install -e python/
-```
-
-### From PyPI
+### From PyPI (recommended)
 
 ```bash
 pip install travel-seg
 ```
 
-The PyPI sdist's `python/CMakeLists.txt` falls back to `FetchContent` for the C++ core, so no separate clone is needed. System-side, you still need PCL + Boost + Eigen on the build path — see the system-deps lines in the source-install block above.
+Prebuilt wheels are published for **Linux x86_64 (manylinux_2_17), macOS arm64 + x86_64, and Windows x86_64** for CPython 3.8–3.13. As of v1.1, the only system dependency is Eigen — no PCL / Boost install required.
+
+### From source (development)
+
+```bash
+# System deps (Ubuntu)
+sudo apt install build-essential cmake libeigen3-dev
+
+# System deps (macOS)
+brew install cmake eigen
+
+# System deps (Windows)
+vcpkg install eigen3:x64-windows
+# then: -DCMAKE_PREFIX_PATH="C:/vcpkg/installed/x64-windows" forwarded by
+# the release workflow / pip env on Windows.
+
+git clone https://github.com/url-kaist/TRAVEL.git
+cd TRAVEL
+pip install -e python/
+```
 
 ## Usage
 

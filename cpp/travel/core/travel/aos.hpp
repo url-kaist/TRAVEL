@@ -13,12 +13,10 @@
 #include <random>
 #include <chrono>
 #include <forward_list>
-#include <boost/optional.hpp>
+#include <optional>
+#include "travel/types.hpp"
 
 #include "travel/logging.hpp"
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/common/io.h>
 
 using namespace std;
 
@@ -73,8 +71,8 @@ namespace travel {
             int DOWNSAMPLE;
             float MIN_VERT_ANGLE;
             float MAX_VERT_ANGLE;
-            boost::optional<int> MIN_CLUSTER_SIZE;
-            boost::optional<int> MAX_CLUSTER_SIZE;
+            std::optional<int> MIN_CLUSTER_SIZE;
+            std::optional<int> MAX_CLUSTER_SIZE;
        
             int num_clusters_ = 0;
 
@@ -112,8 +110,8 @@ namespace travel {
                             float _horz_merge_thres, float _vert_merge_thres, int _vert_scan_size,
                             int _horz_scan_size, int _horz_extension_size, int _horz_skip_size,
                             int _downsample,
-                            boost::optional<int> _min_cluster_size=boost::none, 
-                            boost::optional<int> _max_cluster_size=boost::none) {
+                            std::optional<int> _min_cluster_size=std::nullopt, 
+                            std::optional<int> _max_cluster_size=std::nullopt) {
                             
                 std::cout<<""<<std::endl;
                 TRAVEL_LOG_WARN("Set ObjectSeg Parameters");
@@ -175,8 +173,8 @@ namespace travel {
                     MAX_CLUSTER_SIZE = _max_cluster_size;
             }
 
-            void segmentObjects(typename pcl::PointCloud<T>::Ptr cloud_in,
-                            typename pcl::PointCloud<T>::Ptr cloud_out,
+            void segmentObjects(typename travel::PointCloud<T>::Ptr cloud_in,
+                            typename travel::PointCloud<T>::Ptr cloud_out,
                             vector<float> *vert_angles=nullptr) {
                 // 0. reset
                 max_label_ = 1;
@@ -218,8 +216,8 @@ namespace travel {
                 printf("Post-processing: %ld ms\n", chrono::duration_cast<chrono::milliseconds>(end-start).count());
             }
 
-            void sphericalProjection(typename pcl::PointCloud<T>::Ptr cloud_in) {
-                typename pcl::PointCloud<T>::Ptr valid_cloud(new pcl::PointCloud<T>());
+            void sphericalProjection(typename travel::PointCloud<T>::Ptr cloud_in) {
+                typename travel::PointCloud<T>::Ptr valid_cloud(new travel::PointCloud<T>());
                 valid_cloud->points.reserve(cloud_in->points.size());
                 int ring_idx = -1, row_idx = -1, col_idx = -1;
                 float range;
@@ -271,8 +269,8 @@ namespace travel {
                 *cloud_in = *valid_cloud;
             }
 
-            void labelPointcloud(typename pcl::PointCloud<T>::Ptr cloud_in,
-                                typename pcl::PointCloud<T>::Ptr cloud_out) {
+            void labelPointcloud(typename travel::PointCloud<T>::Ptr cloud_in,
+                                typename travel::PointCloud<T>::Ptr cloud_out) {
                 num_clusters_ = 0;
                 uint pt_cnt = 0;
                 uint max = 2000;

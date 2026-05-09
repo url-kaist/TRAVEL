@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.16...3.31)
-# C language is enabled (alongside C++) so find_package(MPI) below can
-# resolve its C component, which VTK 9.1's CMake config needs as MPI::MPI_C
-# when shipped with Ubuntu 22.04's libpcl-dev. We don't actually compile any
-# C source files; this only enables the language for find-time checks.
-project(travel VERSION 1.0.0 LANGUAGES C CXX)
+project(travel VERSION 1.1.0 LANGUAGES CXX)
 
 option(USE_CCACHE "Build using Ccache if found on the path" ON)
 option(TRAVEL_BUILD_EXAMPLES "Build standalone examples in cpp/examples" OFF)
@@ -30,22 +26,18 @@ include(GNUInstallDirs)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # --- Dependencies ----------------------------------------------------------
-# Ubuntu 22.04's libpcl-dev is built against VTK 9.1, whose CMake config
-# advertises VTK::mpi -> MPI::MPI_C without running find_package(MPI)
-# itself. We pre-find MPI here so that imported target exists by the time
-# PCL pulls VTK in. The find is tolerant (no REQUIRED) — older PCL/VTK
-# stacks (macOS Homebrew, Ubuntu 20.04) don't need it and the find is a
-# no-op there.
-find_package(MPI)
-# PCL pulls in Eigen and Boost transitively for the headers we use.
-find_package(PCL REQUIRED COMPONENTS common io filters)
-find_package(Boost REQUIRED COMPONENTS filesystem system)
+# Eigen is the only system dep the core needs. PCL and Boost were dropped in
+# the v1.1 release (cpp/travel/core/travel/types.hpp now provides the small
+# slice we used to borrow from PCL). Eigen is header-only and ships
+# everywhere we care about — apt's libeigen3-dev, brew's eigen, vcpkg's
+# eigen3 — so cibuildwheel can produce a Linux/macOS/Windows wheel matrix
+# without per-platform package contortions.
+find_package(Eigen3 REQUIRED NO_MODULE)
 
 # --- Library target --------------------------------------------------------
 # The TRAVEL core is header-only (templated on PointType), so we expose it as
 # an INTERFACE library. Downstream consumers (ros/, cpp/examples/, python/)
-# link against `travel::travel_core` and inherit the include paths and the
-# transitive PCL/Boost dependencies.
+# link against `travel::travel_core` and inherit the include paths.
 set(TARGET_NAME travel_core)
 add_library(${TARGET_NAME} INTERFACE)
 add_library(travel::travel_core ALIAS ${TARGET_NAME})
@@ -56,17 +48,8 @@ target_include_directories(${TARGET_NAME} INTERFACE
 )
 
 target_link_libraries(${TARGET_NAME} INTERFACE
-    ${PCL_LIBRARIES}
-    Boost::filesystem
-    Boost::system
+    Eigen3::Eigen
 )
-
-target_include_directories(${TARGET_NAME} SYSTEM INTERFACE
-    ${PCL_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-)
-
-target_compile_definitions(${TARGET_NAME} INTERFACE ${PCL_DEFINITIONS})
 
 # --- Examples (opt-in) -----------------------------------------------------
 if (TRAVEL_BUILD_EXAMPLES)

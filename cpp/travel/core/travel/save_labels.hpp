@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include <pcl/point_cloud.h>
+#include "travel/types.hpp"
 
 #include "travel/point_types.hpp"
 #include "travel/3rdparty/nanoflann.hpp"
@@ -16,8 +16,8 @@
 template <typename PointType>
 void saveLabels(const std::string abs_dir,
                 const int frame_num,
-                const pcl::PointCloud<PointType>& cloud_in,
-                const pcl::PointCloud<PointType>& labeled_pc) {
+                const travel::PointCloud<PointType>& cloud_in,
+                const travel::PointCloud<PointType>& labeled_pc) {
     // Save labels as a .label file. Compatible with the 3DUIS benchmark
     // (https://codalab.lisn.upsaclay.fr/competitions/2183).
     // Labels are taken from the intensity of `labeled_pc` (must be > 0).

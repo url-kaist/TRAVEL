@@ -1,45 +1,39 @@
 name: Release (PyPI)
 
-# Triggered manually from the GitHub Actions UI. Builds the sdist + a Linux
-# wheel, runs twine check, and uploads to PyPI via Trusted Publishing
-# (OIDC) — no API token / GitHub secret required.
+# Builds the sdist and a per-platform wheel matrix (Linux x86_64 manylinux,
+# macOS arm64 + x86_64, Windows x86_64), then publishes to PyPI via Trusted
+# Publishing (OIDC). No API token / GitHub secret required.
+#
+# travel-seg's pybind extension only depends on Eigen since v1.1 (PCL was
+# dropped from the core), so cibuildwheel can produce wheels for every
+# target platform without bringing in a vcpkg / brew / apt PCL install.
 #
 # One-time PyPI setup (https://pypi.org/manage/account/publishing/):
-#   Add a "pending publisher" with the following settings before the very
-#   first release. After the first publish, this becomes a regular
-#   "Trusted Publisher" attached to the project.
-#
+#   "Add a pending publisher" with:
 #       PyPI Project Name: travel-seg
 #       Owner            : url-kaist
 #       Repository name  : TRAVEL
 #       Workflow name    : release.yml
 #       Environment name : pypi
 #
-# Recommended manual run sequence:
+# Per-release flow:
 #   1) Bump version in python/pyproject.toml, travel_seg/__init__.py,
-#      and travel_seg/pybind/travel_pybind.cpp.
-#   2) Tag and push: git tag vX.Y.Z && git push origin vX.Y.Z
-#   3) Run this workflow from the Actions tab.
-#   4) Verify install in a fresh venv:
-#        pip install travel-seg==X.Y.Z
+#      travel_seg/pybind/travel_pybind.cpp.
+#   2) git tag vX.Y.Z && git push origin vX.Y.Z
+#   3) Run this workflow from the Actions tab. It tests on PR / push too,
+#      but only uploads to PyPI when the run is from a tag (GitHub Release).
 
 on:
   workflow_dispatch:
+  push:
+    tags: ['v*']
+  pull_request:
+    branches: [main]
 
 jobs:
-  build:
+  sdist:
     name: Build sdist
     runs-on: ubuntu-22.04
-    # We deliberately publish *only* an sdist (no wheel). Reasons:
-    # * PyPI rejects vanilla `linux_x86_64` wheels — only `manylinux_*`
-    #   tags are accepted, which would mean cibuildwheel inside a manylinux
-    #   container.
-    # * travel_seg's pybind extension links against system PCL / Boost /
-    #   Eigen. Shipping a prebuilt wheel risks ABI mismatch with the user's
-    #   PCL on Ubuntu 22.04 vs 24.04 vs macOS Homebrew. `pip install` from
-    #   sdist re-compiles against the local PCL, which is what we want.
-    # The C++ deps are therefore not installed in this job — sdist creation
-    # only packages source files and does not invoke cmake.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,31 +55,78 @@ jobs:
       - name: twine check
         run: twine check dist/*
 
-      - name: Upload distributions as workflow artefact
+      - name: Upload sdist artefact
         uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: dist/
+          name: dist-sdist
+          path: dist/*.tar.gz
+          retention-days: 30
+
+  wheels:
+    name: Build wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # ubuntu-22.04 produces manylinux_2_17_x86_64 wheels via cibuildwheel
+        # (which runs the build in a manylinux container, not on the host).
+        # macos-14 = Apple Silicon (arm64) runner — also builds an x86_64
+        # wheel via cross-compile when CIBW_ARCHS_MACOS includes it.
+        # windows-2022 produces win_amd64.
+        os: [ubuntu-22.04, macos-14, windows-2022]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.21.3
+        env:
+          # PyPy lacks the C API symbols pybind11 needs (PyModule_GetFilenameObject etc.).
+          # Restrict to CPython only — PyPy native-extension support is not a goal here.
+          CIBW_SKIP: "pp* *-musllinux_*"
+          # macOS: build both arm64 and x86_64 from the macos-14 (arm64) runner.
+          CIBW_ARCHS_MACOS: "arm64 x86_64"
+          # The cibuildwheel-default manylinux2014 image already ships GCC + Eigen
+          # via dnf? No — Eigen is not in the default image. We install it before
+          # each per-tag build. Same on macOS / Windows.
+          CIBW_BEFORE_ALL_LINUX: "yum install -y eigen3-devel"
+          CIBW_BEFORE_ALL_MACOS: "brew install eigen"
+          CIBW_BEFORE_ALL_WINDOWS: "vcpkg install eigen3:x64-windows"
+          # Tell cmake (via scikit-build-core) where vcpkg's Eigen lives.
+          CIBW_ENVIRONMENT_WINDOWS: 'CMAKE_PREFIX_PATH="C:/vcpkg/installed/x64-windows"'
+          # cibuildwheel runs `pip install` from this directory.
+        with:
+          package-dir: python/
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
           retention-days: 30
 
   publish-pypi:
     name: Publish to PyPI (Trusted Publisher)
-    needs: build
+    needs: [sdist, wheels]
+    # Only upload to PyPI when this run is from a tag push (GitHub release).
+    # Workflow-dispatch / PR runs build artefacts but stop short of upload.
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-22.04
-    # The `environment` and `permissions: id-token: write` blocks together
-    # are what activate Trusted Publishing — pypi.org verifies the OIDC
-    # token from this exact (repo, workflow, environment) tuple.
     environment:
       name: pypi
       url: https://pypi.org/p/travel-seg
     permissions:
       id-token: write
     steps:
-      - name: Download distributions
+      - name: Download all distributions
         uses: actions/download-artifact@v4
         with:
-          name: dist
-          path: dist/
+          path: dist
+          pattern: dist-*
+          merge-multiple: true
+
+      - name: Show what we're about to upload
+        run: ls -la dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

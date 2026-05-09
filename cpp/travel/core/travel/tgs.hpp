@@ -17,12 +17,7 @@
 #include <queue>
 #include <signal.h>
 
-#include <pcl/filters/filter.h>
-#include <pcl/common/centroid.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/PCLHeader.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
+#include "travel/types.hpp"
 
 #include "travel/logging.hpp"
 
@@ -56,7 +51,7 @@ namespace travel {
     template <typename PointType>
     struct TriGridNode {
         int node_type;
-        pcl::PointCloud<PointType> ptCloud;
+        travel::PointCloud<PointType> ptCloud;
 
         bool is_curr_data;
         
@@ -95,7 +90,7 @@ namespace travel {
     template <typename PointType>
     class TravelGroundSeg{
     private:
-        pcl::PCLHeader cloud_header_;
+        travel::PCLHeader cloud_header_;
 
         bool REFINE_MODE_;
         bool VIZ_MDOE_;
@@ -123,20 +118,20 @@ namespace travel {
         std::vector<std::vector<TriGridCorner>> trigrid_corners_;
         std::vector<std::vector<TriGridCorner>> trigrid_centers_;
 
-        pcl::PointCloud<PointType> empty_cloud_;
+        travel::PointCloud<PointType> empty_cloud_;
         TriGridNode<PointType>  empty_trigrid_node_;
         GridNode<PointType> empty_grid_nodes_;
         TriGridCorner empty_trigrid_corner_;
         TriGridCorner empty_trigrid_center_;
 
-        pcl::PointCloud<PointType> ptCloud_tgfwise_ground_;
-        pcl::PointCloud<PointType> ptCloud_tgfwise_nonground_;
-        pcl::PointCloud<PointType> ptCloud_tgfwise_outliers_;
-        pcl::PointCloud<PointType> ptCloud_tgfwise_obstacle_;
-        pcl::PointCloud<PointType> ptCloud_nodewise_ground_;
-        pcl::PointCloud<PointType> ptCloud_nodewise_nonground_;
-        pcl::PointCloud<PointType> ptCloud_nodewise_outliers_;
-        pcl::PointCloud<PointType> ptCloud_nodewise_obstacle_;
+        travel::PointCloud<PointType> ptCloud_tgfwise_ground_;
+        travel::PointCloud<PointType> ptCloud_tgfwise_nonground_;
+        travel::PointCloud<PointType> ptCloud_tgfwise_outliers_;
+        travel::PointCloud<PointType> ptCloud_tgfwise_obstacle_;
+        travel::PointCloud<PointType> ptCloud_nodewise_ground_;
+        travel::PointCloud<PointType> ptCloud_nodewise_nonground_;
+        travel::PointCloud<PointType> ptCloud_nodewise_outliers_;
+        travel::PointCloud<PointType> ptCloud_nodewise_obstacle_;
 
     public:
         TravelGroundSeg() {
@@ -223,9 +218,9 @@ namespace travel {
             // the graph via getTriGridField() / getTriGridEdges().
         }
 
-        void estimateGround(const pcl::PointCloud<PointType>& cloud_in,
-                            pcl::PointCloud<PointType>& cloudGround_out,
-                            pcl::PointCloud<PointType>& cloudNonground_out,
+        void estimateGround(const travel::PointCloud<PointType>& cloud_in,
+                            travel::PointCloud<PointType>& cloudGround_out,
+                            travel::PointCloud<PointType>& cloudNonground_out,
                             double& time_taken){
         
             // 0. Init
@@ -321,8 +316,8 @@ namespace travel {
             }
         };
 
-        pcl::PointCloud<PointType> getObstaclePC(){
-            pcl::PointCloud<PointType> cloud_obstacle;
+        travel::PointCloud<PointType> getObstaclePC(){
+            travel::PointCloud<PointType> cloud_obstacle;
             cloud_obstacle = ptCloud_tgfwise_obstacle_;
             return cloud_obstacle;
         };
@@ -474,7 +469,7 @@ namespace travel {
             return false;
         }
 
-        void embedCloudToTriGridField(const pcl::PointCloud<PointType>& cloud_in, TriGridField<PointType>& tgf_out) {
+        void embedCloudToTriGridField(const travel::PointCloud<PointType>& cloud_in, TriGridField<PointType>& tgf_out) {
             // TRAVEL_LOG_INFO("Embedding PointCloud to TriGridField...");
 
             for (auto const &pt: cloud_in.points){
@@ -515,7 +510,7 @@ namespace travel {
             return;
         };
 
-        void extractInitialSeeds(const pcl::PointCloud<PointType>& p_sorted, pcl::PointCloud<PointType>& init_seeds){
+        void extractInitialSeeds(const travel::PointCloud<PointType>& p_sorted, travel::PointCloud<PointType>& init_seeds){
             //function for uniform mode
             init_seeds.points.clear();
 
@@ -541,12 +536,12 @@ namespace travel {
             return;
         }
 
-        void estimatePlanarModel(const pcl::PointCloud<PointType>& ground_in, TriGridNode<PointType>& node_out) {
+        void estimatePlanarModel(const travel::PointCloud<PointType>& ground_in, TriGridNode<PointType>& node_out) {
 
             // function for uniform mode
             Eigen::Matrix3f cov_;
             Eigen::Vector4f pc_mean_;
-            pcl::computeMeanAndCovarianceMatrix(ground_in, cov_, pc_mean_);
+            travel::computeMeanAndCovarianceMatrix(ground_in, cov_, pc_mean_);
 
             // Singular Value Decomposition: SVD
             Eigen::JacobiSVD<Eigen::MatrixXf> svd(cov_, Eigen::DecompositionOptions::ComputeFullU);
@@ -579,7 +574,7 @@ namespace travel {
             
             // Tri Grid Initialization
             // When to initialize the planar model, we don't have prior. so outlier is removed in heuristic parameter.
-            pcl::PointCloud<PointType> sort_ptCloud = node_in.ptCloud;
+            travel::PointCloud<PointType> sort_ptCloud = node_in.ptCloud;
 
             // sort in z-coordinate
             sort(sort_ptCloud.points.begin(), sort_ptCloud.end(), point_z_cmp<PointType>);
@@ -965,7 +960,7 @@ namespace travel {
         };
 
 
-        double getCornerWeight(const TriGridNode<PointType>& node_in, const pcl::PointXYZ &tgt_corner){
+        double getCornerWeight(const TriGridNode<PointType>& node_in, const travel::PointXYZ &tgt_corner){
             double xy_dist = sqrt( (node_in.mean_pt[0]-tgt_corner.x)*(node_in.mean_pt[0]-tgt_corner.x)+(node_in.mean_pt[1]-tgt_corner.y)*(node_in.mean_pt[1]-tgt_corner.y) );
             return (node_in.weight/xy_dist);
         }
@@ -973,7 +968,7 @@ namespace travel {
         void setTGFCornersCenters(const TriGridField<PointType>& tgf_in,
                                 std::vector<std::vector<TriGridCorner>>& trigrid_corners_out,
                                 std::vector<std::vector<TriGridCorner>>& trigrid_centers_out) {
-            pcl::PointXYZ corner_TL, corner_BL, corner_BR, corner_TR, corner_C;
+            travel::PointXYZ corner_TL, corner_BL, corner_BR, corner_TR, corner_C;
 
             for (int r_i = 0; r_i<rows_; r_i++){
             for (int c_i = 0; c_i<cols_; c_i++){
@@ -1217,10 +1212,10 @@ namespace travel {
         };
 
         void segmentNodeGround(const TriGridNode<PointType>& node_in,
-                                pcl::PointCloud<PointType>& node_ground_out,
-                                pcl::PointCloud<PointType>& node_nonground_out,
-                                pcl::PointCloud<PointType>& node_obstacle_out,
-                                pcl::PointCloud<PointType>& node_outlier_out) {
+                                travel::PointCloud<PointType>& node_ground_out,
+                                travel::PointCloud<PointType>& node_nonground_out,
+                                travel::PointCloud<PointType>& node_obstacle_out,
+                                travel::PointCloud<PointType>& node_outlier_out) {
             node_ground_out.clear();
             node_nonground_out.clear();
             node_obstacle_out.clear();
@@ -1254,10 +1249,10 @@ namespace travel {
         }
 
         void segmentTGFGround(const TriGridField<PointType>& tgf_in, 
-                        pcl::PointCloud<PointType>& ground_cloud_out, 
-                        pcl::PointCloud<PointType>& nonground_cloud_out,
-                        pcl::PointCloud<PointType>& obstacle_cloud_out,
-                        pcl::PointCloud<PointType>& outlier_cloud_out) {
+                        travel::PointCloud<PointType>& ground_cloud_out, 
+                        travel::PointCloud<PointType>& nonground_cloud_out,
+                        travel::PointCloud<PointType>& obstacle_cloud_out,
+                        travel::PointCloud<PointType>& outlier_cloud_out) {
             ground_cloud_out.clear();
             nonground_cloud_out.clear();
             obstacle_cloud_out.clear();
@@ -1290,16 +1285,16 @@ namespace travel {
         };
 
         void segmentTGFGround_developing(const TriGridField<PointType>& tgf_in, 
-                        pcl::PointCloud<PointType>& ground_cloud_out, 
-                        pcl::PointCloud<PointType>& nonground_cloud_out,
-                        pcl::PointCloud<PointType>& obstacle_cloud_out,
-                        pcl::PointCloud<PointType>& outlier_cloud_out) {
+                        travel::PointCloud<PointType>& ground_cloud_out, 
+                        travel::PointCloud<PointType>& nonground_cloud_out,
+                        travel::PointCloud<PointType>& obstacle_cloud_out,
+                        travel::PointCloud<PointType>& outlier_cloud_out) {
             ground_cloud_out.clear();
             nonground_cloud_out.clear();
             obstacle_cloud_out.clear();
             TriGridIdx curr_tgf_idx;
             std::vector<TriGridIdx> adj_idx_vec;
-            pcl::PointCloud<PointType> outlier_tmp;
+            travel::PointCloud<PointType> outlier_tmp;
             outlier_tmp.clear();
             outlier_tmp.reserve(NODEWISE_PTCLOUDSIZE);
             for (int r_i = 0; r_i < rows_; r_i++){

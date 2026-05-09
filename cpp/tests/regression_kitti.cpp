@@ -49,7 +49,7 @@ namespace {
 // this value invalidates the gold file and forces a regeneration.
 constexpr uint32_t kAosSeed = 42;
 
-bool loadBin(const std::string& path, pcl::PointCloud<PointXYZILID>::Ptr& cloud) {
+bool loadBin(const std::string& path, travel::PointCloud<PointXYZILID>::Ptr& cloud) {
     std::ifstream f(path, std::ios::binary | std::ios::ate);
     if (!f) { std::cerr << "open failed: " << path << "\n"; return false; }
     std::streamsize bytes = f.tellg();
@@ -76,8 +76,8 @@ bool loadBin(const std::string& path, pcl::PointCloud<PointXYZILID>::Ptr& cloud)
 
 // Build {xyz -> output index} via uint32 bit-pattern hashing. Algorithm
 // copies x/y/z exactly (no projection or quantization), so this is safe.
-std::vector<int> mapToInputIndex(const pcl::PointCloud<PointXYZILID>& input,
-                                 const pcl::PointCloud<PointXYZILID>& out) {
+std::vector<int> mapToInputIndex(const travel::PointCloud<PointXYZILID>& input,
+                                 const travel::PointCloud<PointXYZILID>& out) {
     struct Key { uint32_t x, y, z; };
     struct Hash { size_t operator()(const Key& k) const {
         return (size_t)k.x * 1000003u ^ (size_t)k.y * 7919u ^ (size_t)k.z;
@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
     const std::string out_path  = argv[2];
     const std::string gold_path = (argc == 4) ? argv[3] : "";
 
-    pcl::PointCloud<PointXYZILID>::Ptr cloud_in(new pcl::PointCloud<PointXYZILID>());
+    travel::PointCloud<PointXYZILID>::Ptr cloud_in(new travel::PointCloud<PointXYZILID>());
     if (!loadBin(in_path, cloud_in)) return 2;
     std::cout << "loaded " << cloud_in->size() << " points\n";
 
@@ -127,8 +127,8 @@ int main(int argc, char** argv) {
                   0.5, 0.125, 0.3, 0.940, 200.0,
                   0.03, 0.1, 1.0, /*refine_mode=*/true, /*viz_mode=*/false);
 
-    pcl::PointCloud<PointXYZILID> ground;
-    pcl::PointCloud<PointXYZILID> nonground;
+    travel::PointCloud<PointXYZILID> ground;
+    travel::PointCloud<PointXYZILID> nonground;
     double tgs_time = 0.0;
     tgs.estimateGround(*cloud_in, ground, nonground, tgs_time);
     std::cout << "TGS: ground=" << ground.size()
@@ -139,8 +139,8 @@ int main(int argc, char** argv) {
                   -24.8f, 2.0f, 0.4f, 0.5f, 3, 5, 5, 5, 1, 10, 30000);
     aos.setSeed(kAosSeed);
 
-    pcl::PointCloud<PointXYZILID>::Ptr nonground_ptr(new pcl::PointCloud<PointXYZILID>(nonground));
-    pcl::PointCloud<PointXYZILID>::Ptr labeled_ptr(new pcl::PointCloud<PointXYZILID>());
+    travel::PointCloud<PointXYZILID>::Ptr nonground_ptr(new travel::PointCloud<PointXYZILID>(nonground));
+    travel::PointCloud<PointXYZILID>::Ptr labeled_ptr(new travel::PointCloud<PointXYZILID>());
     aos.segmentObjects(nonground_ptr, labeled_ptr);
     std::cout << "AOS: labeled=" << labeled_ptr->size() << " (seed=" << kAosSeed << ")\n";
 
