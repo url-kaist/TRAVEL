@@ -28,23 +28,21 @@ on:
 
 jobs:
   build:
-    name: Build sdist + wheel
+    name: Build sdist
     runs-on: ubuntu-22.04
+    # We deliberately publish *only* an sdist (no wheel). Reasons:
+    # * PyPI rejects vanilla `linux_x86_64` wheels — only `manylinux_*`
+    #   tags are accepted, which would mean cibuildwheel inside a manylinux
+    #   container.
+    # * travel_seg's pybind extension links against system PCL / Boost /
+    #   Eigen. Shipping a prebuilt wheel risks ABI mismatch with the user's
+    #   PCL on Ubuntu 22.04 vs 24.04 vs macOS Homebrew. `pip install` from
+    #   sdist re-compiles against the local PCL, which is what we want.
+    # The C++ deps are therefore not installed in this job — sdist creation
+    # only packages source files and does not invoke cmake.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Install C++ build deps
-        # Required because `python -m build` invokes scikit-build-core which
-        # then runs cmake which needs PCL/Boost/MPI to compile the pybind
-        # extension into the wheel.
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends \
-            build-essential cmake \
-            libeigen3-dev \
-            libboost-system-dev libboost-filesystem-dev \
-            libpcl-dev mpi-default-dev
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -54,10 +52,10 @@ jobs:
       - name: Install build + twine
         run: python -m pip install --upgrade pip build twine
 
-      - name: Build sdist + wheel
+      - name: Build sdist
         run: |
           rm -rf dist/
-          python -m build python/ --outdir dist/
+          python -m build --sdist python/ --outdir dist/
           ls -la dist/
 
       - name: twine check
