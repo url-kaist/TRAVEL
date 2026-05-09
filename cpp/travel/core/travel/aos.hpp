@@ -26,19 +26,25 @@ namespace travel {
 
     class AOSNode {
         public:
-            uint start;
-            uint end;
-            int label;
+            // start/end were declared without in-class initializers; combined
+            // with the uninit `int label` in `Point`, this leaked stack
+            // garbage into the per-channel node lists in horizontalUpdate
+            // and made cluster filtering decisions in labelPointcloud
+            // run-to-run nondeterministic. Zero-init makes the algorithm
+            // produce the same partition every time the input is the same.
+            uint start = 0;
+            uint end   = 0;
+            int  label;
 
-            AOSNode() : label(-1) {} 
+            AOSNode() : label(-1) {}
     };
 
     class Point {
         public:
-            float x,y,z;
-            uint idx;
+            float x{0.0f}, y{0.0f}, z{0.0f};
+            uint idx{0};
             bool valid = false;
-            int label;
+            int  label{0};
     };
 
     template <typename T>
