@@ -1,41 +1,35 @@
-name: Release (TestPyPI / PyPI)
+name: Release (PyPI)
 
 # Triggered manually from the GitHub Actions UI. Builds the sdist + a Linux
-# wheel, runs twine check, and uploads to either TestPyPI or PyPI based on
-# the `target` input. This keeps the maintainer in the loop — there is no
-# auto-publish on tag push.
+# wheel, runs twine check, and uploads to PyPI via Trusted Publishing
+# (OIDC) — no API token / GitHub secret required.
 #
-# Required secrets (set under Repo Settings -> Secrets and variables -> Actions):
-#   TEST_PYPI_API_TOKEN  -- token from https://test.pypi.org/manage/account/token/
-#   PYPI_API_TOKEN       -- token from https://pypi.org/manage/account/token/
+# One-time PyPI setup (https://pypi.org/manage/account/publishing/):
+#   Add a "pending publisher" with the following settings before the very
+#   first release. After the first publish, this becomes a regular
+#   "Trusted Publisher" attached to the project.
+#
+#       PyPI Project Name: travel-seg
+#       Owner            : url-kaist
+#       Repository name  : TRAVEL
+#       Workflow name    : release.yml
+#       Environment name : pypi
 #
 # Recommended manual run sequence:
-#   1) Bump version in python/pyproject.toml (and travel_seg/__init__.py
-#      and travel_seg/pybind/travel_pybind.cpp).
-#   2) Tag and push: git tag v1.x.y && git push --tags
-#   3) Run this workflow with target=testpypi.
-#   4) pip install --index-url https://test.pypi.org/simple/ \
-#                  --extra-index-url https://pypi.org/simple/ travel-seg
-#      ... and verify it imports + runs.
-#   5) Re-run with target=pypi.
+#   1) Bump version in python/pyproject.toml, travel_seg/__init__.py,
+#      and travel_seg/pybind/travel_pybind.cpp.
+#   2) Tag and push: git tag vX.Y.Z && git push origin vX.Y.Z
+#   3) Run this workflow from the Actions tab.
+#   4) Verify install in a fresh venv:
+#        pip install travel-seg==X.Y.Z
 
 on:
   workflow_dispatch:
-    inputs:
-      target:
-        description: "Where to upload"
-        required: true
-        type: choice
-        default: testpypi
-        options:
-          - testpypi
-          - pypi
 
 jobs:
-  build-and-upload:
+  build:
+    name: Build sdist + wheel
     runs-on: ubuntu-22.04
-    permissions:
-      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -69,23 +63,31 @@ jobs:
       - name: twine check
         run: twine check dist/*
 
-      - name: Upload to TestPyPI
-        if: ${{ inputs.target == 'testpypi' }}
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-
-      - name: Upload to PyPI
-        if: ${{ inputs.target == 'pypi' }}
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
-
-      - name: Upload artefacts
+      - name: Upload distributions as workflow artefact
         uses: actions/upload-artifact@v4
         with:
-          name: dist-${{ inputs.target }}
+          name: dist
           path: dist/
           retention-days: 30
+
+  publish-pypi:
+    name: Publish to PyPI (Trusted Publisher)
+    needs: build
+    runs-on: ubuntu-22.04
+    # The `environment` and `permissions: id-token: write` blocks together
+    # are what activate Trusted Publishing — pypi.org verifies the OIDC
+    # token from this exact (repo, workflow, environment) tuple.
+    environment:
+      name: pypi
+      url: https://pypi.org/p/travel-seg
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
