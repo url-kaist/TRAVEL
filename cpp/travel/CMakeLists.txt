@@ -26,13 +26,30 @@ include(GNUInstallDirs)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # --- Dependencies ----------------------------------------------------------
-# Eigen is the only system dep the core needs. PCL and Boost were dropped in
+# Eigen is the only build dep the core needs. PCL and Boost were dropped in
 # the v1.1 release (cpp/travel/core/travel/types.hpp now provides the small
-# slice we used to borrow from PCL). Eigen is header-only and ships
-# everywhere we care about — apt's libeigen3-dev, brew's eigen, vcpkg's
-# eigen3 — so cibuildwheel can produce a Linux/macOS/Windows wheel matrix
-# without per-platform package contortions.
-find_package(Eigen3 REQUIRED NO_MODULE)
+# slice we used to borrow from PCL). We try the system Eigen first
+# (libeigen3-dev / brew eigen / vcpkg eigen3), and fall back to fetching
+# Eigen 3.4.0 directly from GitLab if the system doesn't have it. The
+# fallback covers the manylinux2014 cibuildwheel container (CentOS 7's
+# default repos lack eigen3-devel) and Windows runners that don't have
+# vcpkg pre-installed. Eigen is ~10MB header-only, so the fetch is cheap.
+find_package(Eigen3 NO_MODULE QUIET)
+if (NOT Eigen3_FOUND)
+    message(STATUS "System Eigen3 not found; fetching Eigen 3.4.0 via FetchContent")
+    include(FetchContent)
+    FetchContent_Declare(
+        eigen
+        URL      https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+        URL_HASH SHA256=8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72
+    )
+    # Suppress Eigen's own tests / benchmark targets — we only want the
+    # imported `Eigen3::Eigen` interface library.
+    set(EIGEN_BUILD_DOC      OFF CACHE BOOL "" FORCE)
+    set(EIGEN_BUILD_TESTING  OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING        OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(eigen)
+endif()
 
 # --- Library target --------------------------------------------------------
 # The TRAVEL core is header-only (templated on PointType), so we expose it as

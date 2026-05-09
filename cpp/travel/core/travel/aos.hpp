@@ -5,15 +5,17 @@
 // We really appreciate Hyungtae Lim and Prof. Hyun Myung! :)
 //
 #pragma once
-#include <vector>
 #include <algorithm>
+#include <chrono>
+#include <cstdint>
+#include <forward_list>
 #include <iostream>
 #include <list>
 #include <numeric>
-#include <random>
-#include <chrono>
-#include <forward_list>
 #include <optional>
+#include <random>
+#include <vector>
+
 #include "travel/types.hpp"
 
 #include "travel/logging.hpp"
@@ -30,8 +32,8 @@ namespace travel {
             // and made cluster filtering decisions in labelPointcloud
             // run-to-run nondeterministic. Zero-init makes the algorithm
             // produce the same partition every time the input is the same.
-            uint start = 0;
-            uint end   = 0;
+            std::uint32_t start = 0;
+            std::uint32_t end   = 0;
             int  label;
 
             AOSNode() : label(-1) {}
@@ -40,7 +42,7 @@ namespace travel {
     class Point {
         public:
             float x{0.0f}, y{0.0f}, z{0.0f};
-            uint idx{0};
+            std::uint32_t idx{0};
             bool valid = false;
             int  label{0};
     };
@@ -272,8 +274,8 @@ namespace travel {
             void labelPointcloud(typename travel::PointCloud<T>::Ptr cloud_in,
                                 typename travel::PointCloud<T>::Ptr cloud_out) {
                 num_clusters_ = 0;
-                uint pt_cnt = 0;
-                uint max = 2000;
+                std::uint32_t pt_cnt = 0;
+                std::uint32_t max = 2000;
                 cloud_out->points.reserve(cloud_in->points.size());
 
                 // generate random number

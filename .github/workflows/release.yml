@@ -82,19 +82,19 @@ jobs:
         uses: pypa/cibuildwheel@v2.21.3
         env:
           # PyPy lacks the C API symbols pybind11 needs (PyModule_GetFilenameObject etc.).
-          # Restrict to CPython only — PyPy native-extension support is not a goal here.
-          CIBW_SKIP: "pp* *-musllinux_*"
+          # Restrict to CPython only — PyPy native-extension support is not a goal.
+          # Also skip 32-bit Linux (i686) and musllinux to keep the matrix small;
+          # users on those platforms can still install from sdist.
+          CIBW_SKIP: "pp* *-manylinux_i686 *-musllinux_* *-win32"
           # macOS: build both arm64 and x86_64 from the macos-14 (arm64) runner.
-          CIBW_ARCHS_MACOS: "arm64 x86_64"
-          # The cibuildwheel-default manylinux2014 image already ships GCC + Eigen
-          # via dnf? No — Eigen is not in the default image. We install it before
-          # each per-tag build. Same on macOS / Windows.
-          CIBW_BEFORE_ALL_LINUX: "yum install -y eigen3-devel"
-          CIBW_BEFORE_ALL_MACOS: "brew install eigen"
-          CIBW_BEFORE_ALL_WINDOWS: "vcpkg install eigen3:x64-windows"
-          # Tell cmake (via scikit-build-core) where vcpkg's Eigen lives.
-          CIBW_ENVIRONMENT_WINDOWS: 'CMAKE_PREFIX_PATH="C:/vcpkg/installed/x64-windows"'
-          # cibuildwheel runs `pip install` from this directory.
+          # 10.13 is the floor for std::thread / std::shared_ptr in libc++ on
+          # x86_64 — the default cp38 deployment target (10.9) is too old.
+          CIBW_ARCHS_MACOS:        "arm64 x86_64"
+          CIBW_ENVIRONMENT_MACOS:  "MACOSX_DEPLOYMENT_TARGET=10.13"
+          # Eigen is the only system dep. cpp/travel/CMakeLists.txt now
+          # FetchContent-fallback when the system Eigen isn't found, so we
+          # don't need CIBW_BEFORE_ALL_* to apt/brew/vcpkg-install it on the
+          # build container. The fetch is ~10MB and only fires when needed.
         with:
           package-dir: python/
 
