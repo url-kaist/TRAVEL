@@ -1,11 +1,21 @@
 <div align="center">
-  <h1>TRAVEL for RA-L'22 w/ IROS Option</h1>
+  <h1>TRAVEL: Traversable Ground and Above-Ground Object Segmentation</h1>
   <h3>Best Paper Award winner from RA-L 2022</h3>
 
+  <a href="https://github.com/url-kaist/TRAVEL"><img src="https://img.shields.io/badge/-C++-blue?logo=cplusplus" /></a>
+  <a href="https://pypi.org/project/travel-seg/"><img src="https://img.shields.io/badge/Python-3670A0?logo=python&logoColor=ffdd54" /></a>
+  <a href="https://github.com/url-kaist/TRAVEL/tree/main/ros"><img src="https://img.shields.io/badge/ROS2-Humble%20%7C%20Jazzy-blue" /></a>
+  <a href="https://github.com/url-kaist/TRAVEL"><img src="https://img.shields.io/badge/Ubuntu-E95420?logo=ubuntu&logoColor=white" /></a>
+  <a href="https://github.com/url-kaist/TRAVEL"><img src="https://img.shields.io/badge/macOS-000000?logo=apple&logoColor=white" /></a>
+  <a href="https://github.com/url-kaist/TRAVEL"><img src="https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white" /></a>
+  <br />
   <a href="https://www.youtube.com/watch?v=B3CWXAsPwzU"><img src="https://img.shields.io/badge/YouTube-FF0000.svg"/></a>
   <a href="https://www.youtube.com/watch?v=GjLxv8jRM9Y&t=19s"><img src="https://img.shields.io/badge/YouTube-FF0000.svg"/></a>
   <a href="https://ieeexplore.ieee.org/document/9794594"><img src="https://img.shields.io/badge/RA_L-9794594-004088.svg"/></a>
   <a href="https://arxiv.org/abs/2206.03190"><img src="https://img.shields.io/badge/arXiv-2206.03190-004088.svg"/></a>
+  <br />
+  <a href="https://github.com/url-kaist/TRAVEL/actions/workflows/ci.yml"><img src="https://github.com/url-kaist/TRAVEL/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+  <a href="https://pypi.org/project/travel-seg/"><img src="https://img.shields.io/pypi/v/travel-seg.svg" alt="PyPI" /></a>
 
   <p align="center"><img src="https://user-images.githubusercontent.com/47359642/193223368-d43133ec-c231-4e50-90e0-98aa0bf3a5df.gif" alt="travel_kitti" width="95%"/></p>
 
