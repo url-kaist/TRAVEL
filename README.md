@@ -1,21 +1,31 @@
-# TRAVEL for RA-L'22 w/ IROS Option 
-# Best Paper Award winner from RA-L 2022
+<div align="center">
+  <h1>TRAVEL for RA-L'22 w/ IROS Option</h1>
+  <h3>Best Paper Award winner from RA-L 2022</h3>
+
+  <a href="https://www.youtube.com/watch?v=B3CWXAsPwzU"><img src="https://img.shields.io/badge/YouTube-FF0000.svg"/></a>
+  <a href="https://www.youtube.com/watch?v=GjLxv8jRM9Y&t=19s"><img src="https://img.shields.io/badge/YouTube-FF0000.svg"/></a>
+  <a href="https://ieeexplore.ieee.org/document/9794594"><img src="https://img.shields.io/badge/RA_L-9794594-004088.svg"/></a>
+  <a href="https://arxiv.org/abs/2206.03190"><img src="https://img.shields.io/badge/arXiv-2206.03190-004088.svg"/></a>
+
+  <p align="center"><img src="https://user-images.githubusercontent.com/47359642/193223368-d43133ec-c231-4e50-90e0-98aa0bf3a5df.gif" alt="travel_kitti" width="95%"/></p>
+
+  <p><strong><em>Traversable Ground and Above-Ground Object Segmentation using Graph Representation for 3D LiDAR Scans.</em></strong></p>
+</div>
+
+______________________________________________________________________
+
+## :rocket: Overview
+
 Official page of "TRAVEL: Traversable Ground and Above-Ground Object Segmentation using Graph Representation for 3D LiDAR Scans", which is accepted by RA-L with IROS'22 option.
 
-<a href="https://www.youtube.com/watch?v=B3CWXAsPwzU"><img src="https://img.shields.io/badge/YouTube-FF0000.svg"/></a>
-<a href="https://www.youtube.com/watch?v=GjLxv8jRM9Y&t=19s"><img src="https://img.shields.io/badge/YouTube-FF0000.svg"/></a>
-<a href="https://ieeexplore.ieee.org/document/9794594"><img src="https://img.shields.io/badge/RA_L-9794594-004088.svg"/></a>
-<a href="https://arxiv.org/abs/2206.03190"><img src="https://img.shields.io/badge/arXiv-2206.03190-004088.svg"/></a>
-
-## Demo
-![travel_kitti](https://user-images.githubusercontent.com/47359642/193223368-d43133ec-c231-4e50-90e0-98aa0bf3a5df.gif)
-![TRAVEL_results](https://user-images.githubusercontent.com/47359642/193215974-e0e01e73-d578-458d-992f-69069b349b89.png)
+<p align="center"><img src="https://user-images.githubusercontent.com/47359642/193215974-e0e01e73-d578-458d-992f-69069b349b89.png" alt="TRAVEL_results" width="95%"/></p>
 
 ### Keywords
 Object segmentation, Traversable ground segmentation, Graph search, Autonomous navigation, LiDAR
 
+______________________________________________________________________
 
-## Repository Layout
+## :open_file_folder: Repository Layout
 
 The repo is split so the algorithm core can be consumed without ROS or even without C++ tooling.
 
@@ -35,11 +45,16 @@ TRAVEL/
 
 > **ROS 2 only.** As of v1.0, the `ros/` layer is ROS 2 (ament_cmake). The previous catkin / ROS 1 wrapper lives on at tag `v0.1`. Pin to that tag for Melodic / Noetic.
 
-## Test Env.
+______________________________________________________________________
+
+## :test_tube: Test Env.
+
 - Algorithm core (`cpp/`): Ubuntu 20.04+, macOS 13+ (Apple Silicon / Intel) — needs only PCL + Boost.
 - ROS 2 wrapper (`ros/`): verified on **Humble** (Ubuntu 22.04) and **Jazzy** (Ubuntu 24.04).
 
-## How to Build
+______________________________________________________________________
+
+## :hammer: How to Build
 
 ### Python (pip)
 
@@ -105,7 +120,9 @@ colcon build --packages-select travel_ros
 Verified in CI on Humble (Ubuntu 22.04) and Jazzy (Ubuntu 24.04) via the
 official `ros:humble` / `ros:jazzy` Docker images.
 
-## How to Run TRAVEL
+______________________________________________________________________
+
+## :arrow_forward: How to Run TRAVEL
 
 ```
 source install/setup.bash
@@ -116,7 +133,9 @@ The node subscribes to `~/input` (sensor_msgs/PointCloud2) and publishes
 `~/ground`, `~/nonground`, `~/labeled`. All algorithm parameters are
 declared as ROS 2 node parameters; see `ros/config/kitti_params.yaml`.
 
-## On your setting
+______________________________________________________________________
+
+## :wrench: On your setting
 
 1. Include `travel/tgs.hpp` and `travel/aos.hpp` from the `cpp/travel/core` include path.
 2. Initialize `travel::TravelGroundSeg<PointT>` and `travel::ObjectCluster<PointT>`.
@@ -125,10 +144,17 @@ declared as ROS 2 node parameters; see `ros/config/kitti_params.yaml`.
 5. Use `ObjectCluster::segmentObjects()` for above-ground object segmentation.
 6. Logging in the core is routed through `TRAVEL_LOG_*` macros (in `travel/logging.hpp`). Define `TRAVEL_USE_ROS_LOGGING` at compile time to dispatch to ROS_INFO/WARN/ERROR; otherwise output goes to stdout/stderr.
 
+______________________________________________________________________
+
+## :link: Related
+
 * `pip install travel-seg` is now supported via `python/`. See `python/README.md`.
 * For the previous third-party Python wrapper, see https://github.com/darrenjkt/TRAVEL. Thank you Darren :)
 
-## Citation
+______________________________________________________________________
+
+## :page_facing_up: Citation
+
 If our research has been helpful, please cite the below papers:
 
 ```
