@@ -26,8 +26,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
 
 #include "travel/3rdparty/nanoflann.hpp"
 #include "travel/3rdparty/nanoflann_utils.hpp"
@@ -40,7 +38,7 @@ using namespace py::literals;
 
 namespace {
 
-using Cloud    = pcl::PointCloud<PointXYZILID>;
+using Cloud    = travel::PointCloud<PointXYZILID>;
 using CloudPtr = Cloud::Ptr;
 
 // Convert numpy [N,3] (XYZ) or [N,4] (XYZI) float32 array -> PCL cloud.
@@ -55,13 +53,13 @@ CloudPtr numpyToCloud(py::array_t<float, py::array::c_style | py::array::forceca
             "expected (N, 3) for XYZ or (N, 4) for XYZI, got shape (" +
             std::to_string(info.shape[0]) + ", " + std::to_string(info.shape[1]) + ")");
     }
-    const ssize_t N    = info.shape[0];
-    const ssize_t cols = info.shape[1];
+    const py::ssize_t N    = info.shape[0];
+    const py::ssize_t cols = info.shape[1];
     const float*  data = static_cast<const float*>(info.ptr);
 
     CloudPtr cloud(new Cloud());
     cloud->reserve(static_cast<size_t>(N));
-    for (ssize_t i = 0; i < N; ++i) {
+    for (py::ssize_t i = 0; i < N; ++i) {
         PointXYZILID p{};
         p.x         = data[i * cols + 0];
         p.y         = data[i * cols + 1];
@@ -151,7 +149,7 @@ PYBIND11_MODULE(_travel_seg, m) {
     m.doc() =
         "pybind11 bindings for the TRAVEL traversable-ground / object "
         "segmentation library.";
-    m.attr("__version__") = "1.0.0";
+    m.attr("__version__") = "1.1.0";
 
     // -- TravelGroundSeg ------------------------------------------------------
     py::class_<travel::TravelGroundSeg<PointXYZILID>>(m, "_TravelGroundSeg")

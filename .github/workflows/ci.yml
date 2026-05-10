@@ -108,17 +108,19 @@ jobs:
 
       - name: Smoke-run run_travel_kitti
         # Exit non-zero if the binary crashes, OR if any of the three
-        # expected PCDs are missing or empty. We don't bit-compare the PCD
-        # contents — that's covered by the C++ regression job. This is just
-        # "did the standalone path break?".
+        # expected output bins are missing or empty. We don't bit-compare
+        # the contents — that's covered by the C++ regression job. This is
+        # just "did the standalone path break?". Output format flipped
+        # from .pcd to plain Nx4 / Nx5 float32 .bin in v1.1 when PCL was
+        # dropped from the core.
         run: |
           mkdir -p /tmp/example_out
           ./build/examples/run_travel_kitti /tmp/kitti_seq/00 0 /tmp/example_out
           ls -la /tmp/example_out/
-          for f in /tmp/example_out/0_ground.pcd /tmp/example_out/0_nonground.pcd /tmp/example_out/0_labeled.pcd; do
+          for f in /tmp/example_out/0_ground.bin /tmp/example_out/0_nonground.bin /tmp/example_out/0_labeled.bin; do
             test -s "$f" || { echo "missing or empty: $f"; exit 1; }
           done
-          echo "PCD outputs look healthy."
+          echo "Outputs look healthy."
 
       - name: Upload example output on failure
         if: failure()

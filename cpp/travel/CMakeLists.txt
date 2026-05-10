@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.16...3.31)
-# C language is enabled (alongside C++) so find_package(MPI) below can
-# resolve its C component, which VTK 9.1's CMake config needs as MPI::MPI_C
-# when shipped with Ubuntu 22.04's libpcl-dev. We don't actually compile any
-# C source files; this only enables the language for find-time checks.
-project(travel VERSION 1.0.0 LANGUAGES C CXX)
+project(travel VERSION 1.1.0 LANGUAGES CXX)
 
 option(USE_CCACHE "Build using Ccache if found on the path" ON)
 option(TRAVEL_BUILD_EXAMPLES "Build standalone examples in cpp/examples" OFF)
@@ -30,22 +26,35 @@ include(GNUInstallDirs)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # --- Dependencies ----------------------------------------------------------
-# Ubuntu 22.04's libpcl-dev is built against VTK 9.1, whose CMake config
-# advertises VTK::mpi -> MPI::MPI_C without running find_package(MPI)
-# itself. We pre-find MPI here so that imported target exists by the time
-# PCL pulls VTK in. The find is tolerant (no REQUIRED) — older PCL/VTK
-# stacks (macOS Homebrew, Ubuntu 20.04) don't need it and the find is a
-# no-op there.
-find_package(MPI)
-# PCL pulls in Eigen and Boost transitively for the headers we use.
-find_package(PCL REQUIRED COMPONENTS common io filters)
-find_package(Boost REQUIRED COMPONENTS filesystem system)
+# Eigen is the only build dep the core needs. PCL and Boost were dropped in
+# the v1.1 release (cpp/travel/core/travel/types.hpp now provides the small
+# slice we used to borrow from PCL). We try the system Eigen first
+# (libeigen3-dev / brew eigen / vcpkg eigen3), and fall back to fetching
+# Eigen 3.4.0 directly from GitLab if the system doesn't have it. The
+# fallback covers the manylinux2014 cibuildwheel container (CentOS 7's
+# default repos lack eigen3-devel) and Windows runners that don't have
+# vcpkg pre-installed. Eigen is ~10MB header-only, so the fetch is cheap.
+find_package(Eigen3 NO_MODULE QUIET)
+if (NOT Eigen3_FOUND)
+    message(STATUS "System Eigen3 not found; fetching Eigen 3.4.0 via FetchContent")
+    include(FetchContent)
+    FetchContent_Declare(
+        eigen
+        URL      https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+        URL_HASH SHA256=8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72
+    )
+    # Suppress Eigen's own tests / benchmark targets — we only want the
+    # imported `Eigen3::Eigen` interface library.
+    set(EIGEN_BUILD_DOC      OFF CACHE BOOL "" FORCE)
+    set(EIGEN_BUILD_TESTING  OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING        OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(eigen)
+endif()
 
 # --- Library target --------------------------------------------------------
 # The TRAVEL core is header-only (templated on PointType), so we expose it as
 # an INTERFACE library. Downstream consumers (ros/, cpp/examples/, python/)
-# link against `travel::travel_core` and inherit the include paths and the
-# transitive PCL/Boost dependencies.
+# link against `travel::travel_core` and inherit the include paths.
 set(TARGET_NAME travel_core)
 add_library(${TARGET_NAME} INTERFACE)
 add_library(travel::travel_core ALIAS ${TARGET_NAME})
@@ -56,17 +65,8 @@ target_include_directories(${TARGET_NAME} INTERFACE
 )
 
 target_link_libraries(${TARGET_NAME} INTERFACE
-    ${PCL_LIBRARIES}
-    Boost::filesystem
-    Boost::system
+    Eigen3::Eigen
 )
-
-target_include_directories(${TARGET_NAME} SYSTEM INTERFACE
-    ${PCL_INCLUDE_DIRS}
-    ${Boost_INCLUDE_DIRS}
-)
-
-target_compile_definitions(${TARGET_NAME} INTERFACE ${PCL_DEFINITIONS})
 
 # --- Examples (opt-in) -----------------------------------------------------
 if (TRAVEL_BUILD_EXAMPLES)

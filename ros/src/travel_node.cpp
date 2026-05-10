@@ -124,13 +124,18 @@ public:
 
 private:
     void cloudCallback(const sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
-        // 1. Convert ROS message -> our PointXYZILID cloud, range-filtering
-        //    on the fly so out-of-range and NaN points are dropped before
-        //    they reach the algorithm.
+        // The travel core stopped using PCL types in v1.1, so this wrapper
+        // does the PCL <-> travel conversion at the ROS boundary. PCL stays
+        // in this file (we still need pcl::fromROSMsg / pcl::toROSMsg),
+        // it just doesn't leak into the algorithm any more.
+
+        // 1. ROS message -> pcl::PointXYZ buffer for cheap deserialization,
+        //    then funnel into a travel::PointCloud<PointXYZILID> with the
+        //    range / NaN filter applied on the fly.
         pcl::PointCloud<pcl::PointXYZ> raw;
         pcl::fromROSMsg(*msg, raw);
 
-        pcl::PointCloud<PointT>::Ptr cloud_in(new pcl::PointCloud<PointT>());
+        auto cloud_in = std::make_shared<travel::PointCloud<PointT>>();
         cloud_in->reserve(raw.size());
         for (const auto& p : raw.points) {
             if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z)) continue;
@@ -143,14 +148,14 @@ private:
         }
 
         // 2. Ground segmentation
-        pcl::PointCloud<PointT> ground, nonground;
+        travel::PointCloud<PointT> ground, nonground;
         double tgs_time = 0.0;
         const auto t0 = std::chrono::steady_clock::now();
         tgs_.estimateGround(*cloud_in, ground, nonground, tgs_time);
 
         // 3. Object clustering on the non-ground subset
-        pcl::PointCloud<PointT>::Ptr nonground_ptr(new pcl::PointCloud<PointT>(nonground));
-        pcl::PointCloud<PointT>::Ptr labeled_ptr(new pcl::PointCloud<PointT>());
+        auto nonground_ptr = std::make_shared<travel::PointCloud<PointT>>(nonground);
+        auto labeled_ptr   = std::make_shared<travel::PointCloud<PointT>>();
         aos_.segmentObjects(nonground_ptr, labeled_ptr);
         const auto t1 = std::chrono::steady_clock::now();
         const double total_ms =
@@ -158,9 +163,9 @@ private:
 
         // 4. Publish all three streams. Headers carry the input timestamp /
         //    frame_id so tooling stays in sync.
-        publishCloud(*pub_ground_,    ground,        msg->header);
-        publishCloud(*pub_nonground_, nonground,     msg->header);
-        publishCloud(*pub_labeled_,   *labeled_ptr,  msg->header);
+        publishCloud(*pub_ground_,    ground,        msg->header, /*emit_label=*/false);
+        publishCloud(*pub_nonground_, nonground,     msg->header, /*emit_label=*/false);
+        publishCloud(*pub_labeled_,   *labeled_ptr,  msg->header, /*emit_label=*/true);
 
         RCLCPP_DEBUG(get_logger(),
                      "in=%zu ground=%zu nonground=%zu labeled=%zu  total=%.2fms",
@@ -168,12 +173,43 @@ private:
                      labeled_ptr->size(), total_ms);
     }
 
+    // Converts a travel::PointCloud<PointXYZILID> to a sensor_msgs PointCloud2.
+    // Uses PCL types under the hood for the field-layout machinery that
+    // pcl::toROSMsg expects:
+    //   * ground / nonground -> pcl::PointXYZI (intensity carries the
+    //     algorithm-input intensity, currently 0).
+    //   * labeled            -> pcl::PointXYZL (label carries the cluster id).
     void publishCloud(rclcpp::Publisher<sensor_msgs::msg::PointCloud2>& pub,
-                      const pcl::PointCloud<PointT>& cloud,
-                      const std_msgs::msg::Header& header) {
+                      const travel::PointCloud<PointT>& cloud,
+                      const std_msgs::msg::Header& header,
+                      bool emit_label) {
         if (pub.get_subscription_count() == 0) return;
         auto msg = std::make_unique<sensor_msgs::msg::PointCloud2>();
-        pcl::toROSMsg(cloud, *msg);
+        if (emit_label) {
+            pcl::PointCloud<pcl::PointXYZL> out;
+            out.points.reserve(cloud.size());
+            for (const auto& p : cloud.points) {
+                pcl::PointXYZL q;
+                q.x = p.x; q.y = p.y; q.z = p.z;
+                q.label = p.id;
+                out.points.push_back(q);
+            }
+            out.width = static_cast<std::uint32_t>(out.points.size());
+            out.height = 1;
+            pcl::toROSMsg(out, *msg);
+        } else {
+            pcl::PointCloud<pcl::PointXYZI> out;
+            out.points.reserve(cloud.size());
+            for (const auto& p : cloud.points) {
+                pcl::PointXYZI q;
+                q.x = p.x; q.y = p.y; q.z = p.z;
+                q.intensity = p.intensity;
+                out.points.push_back(q);
+            }
+            out.width = static_cast<std::uint32_t>(out.points.size());
+            out.height = 1;
+            pcl::toROSMsg(out, *msg);
+        }
         msg->header = header;
         pub.publish(std::move(msg));
     }

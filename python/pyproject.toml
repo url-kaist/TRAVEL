@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "travel-seg"
-version = "1.0.0"
+version = "1.1.0"
 requires-python = ">=3.8"
 description = "Python bindings for TRAVEL: traversable ground and above-ground object segmentation for 3D LiDAR scans"
 readme = "README.md"
