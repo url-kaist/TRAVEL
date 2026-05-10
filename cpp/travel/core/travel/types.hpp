@@ -25,6 +25,13 @@
 
 #include <Eigen/Core>
 
+// MSVC's <cmath> does not define M_PI by default (POSIX/GNU extension);
+// the algorithm uses M_PI in several places, so we define it here once,
+// in the header that every other core header transitively includes.
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace travel {
 
 // PCL's PCLHeader is essentially this. Some PCL code reads `seq`, `stamp`,
