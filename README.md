@@ -19,14 +19,16 @@
 
   <p align="center"><img src="https://user-images.githubusercontent.com/47359642/193223368-d43133ec-c231-4e50-90e0-98aa0bf3a5df.gif" alt="travel_kitti" width="95%"/></p>
 
-  <p align="center">
-    <a href="https://pypi.org/project/travel-seg/"><img src="https://readme-typing-svg.demolab.com?background=0D1117&color=22C55E&font=Fira+Code&size=28&duration=2500&pause=800&center=true&vCenter=true&width=600&height=80&lines=%24+pip+install+travel-seg" alt="$ pip install travel-seg"/></a>
-  </p>
-
   <p><strong><em>Traversable Ground and Above-Ground Object Segmentation using Graph Representation for 3D LiDAR Scans.</em></strong></p>
 </div>
 
 ______________________________________________________________________
+
+> **TL;DR (May 19, 2026)** &nbsp;&middot;&nbsp; Python bindings are now live. Prebuilt wheels for Linux x86_64, macOS arm64/x86_64, and Windows x86_64 ship on PyPI.
+
+<p align="center">
+  <a href="https://pypi.org/project/travel-seg/"><img src="https://readme-typing-svg.demolab.com?background=0D1117&color=22C55E&font=Fira+Code&size=16&duration=2500&pause=800&center=true&vCenter=true&width=360&height=36&lines=%24+pip+install+travel-seg" alt="$ pip install travel-seg"/></a>
+</p>
 
 ## :rocket: Overview
 
