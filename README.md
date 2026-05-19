@@ -23,9 +23,9 @@
 </div>
 
 <p align="center">
-    <strong>(May 19, 2026)</strong> pip installation is now live:
+    <strong>(May 19, 2026)</strong> Python package is now available on PyPI
     <br/>
-    <a href="https://pypi.org/project/travel-seg/"><img src="https://readme-typing-svg.demolab.com?background=0D1117&color=22C55E&font=Fira+Code&size=18&duration=2500&pause=800&center=true&vCenter=true&width=280&height=30&lines=%24+pip+install+travel-seg" alt="pip install travel-seg"/></a>
+    <a href="https://pypi.org/project/travel-seg/"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=500&size=17&duration=2200&pause=900&color=E5E7EB&background=111827&center=true&vCenter=true&width=460&height=48&lines=%E2%9D%AF+pip+install+travel-seg;%E2%9C%93+ready+for+Python" alt="pip install travel-seg"/></a>
 </p>
 
 ______________________________________________________________________
