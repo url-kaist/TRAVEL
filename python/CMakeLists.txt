@@ -7,6 +7,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(PYBIND11_NEWPYTHON ON)
+find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
+
 include(FetchContent)
 FetchContent_Declare(
     pybind11
@@ -14,9 +17,6 @@ FetchContent_Declare(
     GIT_TAG master
 )
 FetchContent_MakeAvailable(pybind11)
-
-set(PYBIND11_NEWPYTHON ON)
-find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 # Dual-mode integration:
 #   In-tree dev (`pip install -e python/` from the repo): use the local
